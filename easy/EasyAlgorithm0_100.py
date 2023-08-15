@@ -264,7 +264,7 @@ class EasyAlgorithm:
     """
 
     def searchPosition_35(self, nums=[], val=0):
-        # 思路：简单粗暴点就从头循环到尾，但这个时间复杂度是O(n)，如果求时间复杂度O(log n)，那么只能使用二分查找法
+        # 思路：简单粗暴点就从头循环到尾，但这个时间复杂度是O(n)，如果要求时间复杂度O(log n)，那么只能使用二分查找法
 
         # 1、先判断是否头尾
         if val <= nums[0]:
@@ -303,6 +303,92 @@ class EasyAlgorithm:
             i = i + 1
         print('字符串最后一个单词是', word[i:len(word)], '长度是', len(word) - i)
 
+    """
+        66. 加一：给定一个由 整数 组成的 非空 数组所表示的非负整数，在该数的基础上加一。
+            最高位数字存放在数组的首位， 数组中每个元素只存储单个数字。你可以假设除了整数 0 之外，这个整数不会以零开头。
+            标签：数组，数学
+            https://leetcode.cn/problems/plus-one/
+    """
+
+    def plusOne_66(self, nums=[]):
+        # 思路1、把数组转换成数字，加1，再转换成数组
+        finalNum = 0
+        finalArray = []
+        for i in range(len(nums)):
+            finalNum = finalNum + nums[i] * (10 ** (len(nums) - i - 1))
+        finalNum = finalNum + 1
+        while finalNum > 0:
+            finalArray.insert(0, finalNum % 10)
+            finalNum = int(finalNum / 10)
+        print(finalArray)
+
+        # 思路2、从末尾开始加1，模拟数学竖式算法，主要麻烦在如果有进位，需要继续给前一位数字加1
+        flag = 0
+        i = len(nums) - 1
+        while flag == 0:
+            if nums[i] == 9:
+                nums[i] = 0
+                if i == 0:
+                    nums.insert(0, 1)
+                    flag = 1
+                else:
+                    i = i - 1
+            else:
+                nums[i] = nums[i] + 1
+                flag = 1
+        print(nums)
+
+    """
+        67. 二进制求和：给你两个二进制字符串 a 和 b ，以二进制字符串的形式返回它们的和。
+            标签：字符串，数学
+            https://leetcode.cn/problems/add-binary/
+    """
+
+    def addBinary_67(self, str1='', str2=''):
+        # 思路1：简单粗暴叠buff，直接把字符串转换成数字，相加后转换回字符串
+        bina1 = int(str1, 2)
+        bina2 = int(str2, 2)
+        bina = bina1 + bina2
+        print(str(bin(bina)))
+
+        # 思路2：老实按照二进制加法，一位一位计算进位
+        l = max(len(str1), len(str2))
+        tempStr = ''
+        finalStr = ''
+        tempB1 = 0
+        tempB2 = 0
+        carry = 0
+        for i in range(l):
+            if i < len(str1):
+                tempB1 = int(str1[len(str1) - i - 1])
+            else:
+                tempB1 = 0
+            if i < len(str2):
+                tempB2 = int(str2[len(str2) - i - 1])
+            else:
+                tempB2 = 0
+            tempStr = str((tempB1 + tempB2 + carry) % 2)
+            finalStr = tempStr + finalStr
+            carry = int((tempB1 + tempB2 + carry) / 2)
+        if carry == 1:
+            finalStr = '1' + finalStr
+        print(finalStr)
+
+    """
+        69. x 的平方根：给你一个非负整数 x ，计算并返回 x 的 算术平方根 。
+            由于返回类型是整数，结果只保留 整数部分 ，小数部分将被 舍去 。
+            注意：不允许使用任何内置指数函数和算符，例如 pow(x, 0.5) 或者 x ** 0.5 。
+            标签：数学
+            https://leetcode.cn/problems/sqrtx/
+    """
+
+    def sqrtx_69(self, num=0):
+        # 思路：简单粗暴点从1轮询到num，看看哪个整数符合条件。但可以缩小点范围，从1轮训到num/2就好了。
+        for i in range(1, math.ceil(num / 2) ):
+            if i * i <= num < (i + 1) * (i + 1):
+                break
+        print(i)
+
 
 if __name__ == "__main__":
     ea = EasyAlgorithm()
@@ -319,4 +405,10 @@ if __name__ == "__main__":
     # ea.searchPosition_35([-1, 0, 0, 3, 5, 7, 7, 8, 8, 9], 2)
     # ea.searchPosition_35([-1, 0, 0, 3, 5, 7, 7, 8, 8, 9], -1)
     # ea.searchPosition_35([-1, 0, 0, 3, 5, 7, 7, 8, 8, 9], 10)
-    ea.lengthOfLastWord_58('Hello World')
+    # ea.lengthOfLastWord_58('Hello World')
+    # ea.plusOne_66([1, 2, 3])
+    # ea.plusOne_66([9, 9, 9])
+    # ea.plusOne_66([0])
+    # ea.plusOne_66([9])
+    # ea.addBinary_67('10101', '11010110110')
+    ea.sqrtx_69(1365)
