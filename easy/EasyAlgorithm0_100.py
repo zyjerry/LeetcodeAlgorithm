@@ -19,11 +19,11 @@ class EasyAlgorithm:
        你可以假设每种输入只会对应一个答案。但是，数组中同一个元素在答案里不能重复出现。
        你可以按任意顺序返回答案。
        进阶：你可以想出一个时间复杂度小于 O(n2) 的算法吗？
-       标签：数组
+       标签：数组，哈希表
        https://leetcode.cn/problems/two-sum/
     """
 
-    def findTwoNumbers_1(self, nums=[1, 3, 5, 7, 9], target=10) -> int:
+    def findTwoNumbers_1(self, nums=[1, 3, 5, 7, 9], target=10):
         i = 0
         j = 1
         flag = 0
@@ -53,8 +53,6 @@ class EasyAlgorithm:
                 numDict[nums[i]] = i
         if flag == 0:
             print('数组中没有符合条件的两个数字之和为', target)
-
-        return 0
 
     """
     9. 回文数：给你一个整数 x ，如果 x 是一个回文整数，返回 true ；否则，返回 false 。
@@ -92,8 +90,6 @@ class EasyAlgorithm:
         if flag == 0:
             print(num, '是回文数。')
 
-        return 0
-
     """
     13. 罗马数字转整数：https://leetcode.cn/problems/roman-to-integer/
     """
@@ -105,13 +101,13 @@ class EasyAlgorithm:
     """
     14. 最长公共前缀：编写一个函数来查找字符串数组中的最长公共前缀。如果不存在公共前缀，返回空字符串 ""。
         https://leetcode.cn/problems/longest-common-prefix/
-        标签：字符串，字典树
+        标签：字典树，字符串
     """
 
     def longestCommonPrefix_14(self, strList=[]):
 
         str = ''
-        # 先获取字符串中长度最小的那个长度
+        # 先获取数组中字符串长度最小的那个长度
         minLen = len(strList[0])
         for i in range(len(strList)):
             if minLen > len(strList[i]):
@@ -148,8 +144,6 @@ class EasyAlgorithm:
             tempStr = ''
         print('最长公共前缀：', tempStr)
 
-        return 0
-
     """
         20. 有效的括号：给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串s，判断字符串是否有效。
             有效字符串需满足：左括号必须用相同类型的右括号闭合。左括号必须以正确的顺序闭合。每个右括号都有一个对应的相同类型的左括号。
@@ -174,7 +168,7 @@ class EasyAlgorithm:
 
     """
         21. 合并两个有序链表：将两个升序链表合并为一个新的 升序 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。 
-            标签：链表
+            标签：链表，递归
             https://leetcode.cn/problems/merge-two-sorted-lists/
     """
 
@@ -203,7 +197,7 @@ class EasyAlgorithm:
             元素的 相对顺序 应该保持 一致 。然后返回 nums 中唯一元素的个数。
             考虑 nums 的唯一元素的数量为 k ，你需要做以下事情确保你的题解可以被通过：
             更改数组 nums ，使 nums 的前 k 个元素包含唯一元素，并按照它们最初在 nums 中出现的顺序排列。nums 的其余元素与 nums 的大小不重要。
-            标签：数组
+            标签：数组，双指针
             https://leetcode.cn/problems/remove-duplicates-from-sorted-array/
     """
 
@@ -220,7 +214,7 @@ class EasyAlgorithm:
         27. 移除元素：给你一个数组 nums 和一个值 val，你需要 原地 移除所有数值等于 val 的元素，并返回移除后数组的新长度。
             不要使用额外的数组空间，你必须仅使用 O(1) 额外空间并 原地 修改输入数组。
             元素的顺序可以改变。你不需要考虑数组中超出新长度后面的元素。
-            标签：数组
+            标签：数组，双指针
             https://leetcode.cn/problems/remove-element/
     """
 
@@ -238,7 +232,7 @@ class EasyAlgorithm:
         28. 找出字符串中第一个匹配项的下标：
             给你两个字符串 haystack 和 needle ，请你在 haystack 字符串中找出 needle 字符串的第一个匹配项的下标（下标从 0 开始）。
             如果 needle 不是 haystack 的一部分，则返回  -1 。
-            标签：字符串
+            标签：字符串，双指针
             https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/
     """
 
@@ -340,7 +334,7 @@ class EasyAlgorithm:
 
     """
         67. 二进制求和：给你两个二进制字符串 a 和 b ，以二进制字符串的形式返回它们的和。
-            标签：字符串，数学
+            标签：字符串，数学，位运算，模拟
             https://leetcode.cn/problems/add-binary/
     """
 
@@ -378,16 +372,186 @@ class EasyAlgorithm:
         69. x 的平方根：给你一个非负整数 x ，计算并返回 x 的 算术平方根 。
             由于返回类型是整数，结果只保留 整数部分 ，小数部分将被 舍去 。
             注意：不允许使用任何内置指数函数和算符，例如 pow(x, 0.5) 或者 x ** 0.5 。
-            标签：数学
+            标签：数学，二分查找
             https://leetcode.cn/problems/sqrtx/
     """
 
     def sqrtx_69(self, num=0):
-        # 思路：简单粗暴点从1轮询到num，看看哪个整数符合条件。但可以缩小点范围，从1轮训到num/2就好了。
-        for i in range(1, math.ceil(num / 2) ):
+        # 思路：简单粗暴点从1轮询到num，看看哪个整数符合条件。但可以缩小点范围，从1轮询到num/2就好了。也可以使用二分查找法更快一点。
+        for i in range(1, math.ceil(num / 2)):
             if i * i <= num < (i + 1) * (i + 1):
                 break
         print(i)
+
+    """
+        70. 爬楼梯：假设你正在爬楼梯。需要 n 阶你才能到达楼顶。每次你可以爬 1 或 2 个台阶。你有多少种不同的方法可以爬到楼顶呢？
+            标签：数学，递归，动态规划，记忆化搜索，斐波那契数列
+            https://leetcode.cn/problems/climbing-stairs/
+    """
+
+    # 思路1、暴力递归，比较耗费资源，当n=40时就比较慢了，需要好几秒，当n=45就无限等不出结果了
+    def climbingStairs_70_recursion(self, n=1) -> int:
+        if n == 1:
+            return 1
+        elif n == 2:
+            return 2
+        elif n > 2:
+            return self.climbingStairs_70_recursion(n - 1) + self.climbingStairs_70_recursion(n - 2)
+
+    # 思路2、改进的递归，把中途计算的结果用HashMap存起来，不用重复计算，效率显著提升
+    stairsDict = {}
+
+    def climbingStairs_70_improvedRecursion(self, n=1) -> int:
+        if n == 1:
+            self.stairsDict[1] = 1
+            return 1
+        elif n == 2:
+            self.stairsDict[2] = 2
+            return 2
+        elif n > 2:
+            if n - 1 not in self.stairsDict:
+                self.stairsDict[n - 1] = self.climbingStairs_70_improvedRecursion(n - 1)
+            if n - 2 not in self.stairsDict:
+                self.stairsDict[n - 2] = self.climbingStairs_70_improvedRecursion(n - 2)
+            self.stairsDict[n] = self.stairsDict[n - 1] + self.stairsDict[n - 2]
+            return self.stairsDict[n]
+
+    # 思路3、动态规划。递归的思路是自顶向下，动态规划的思路是自底向上，先从1开始，计算2、3，直至n，所以一个循环即可完成
+    def climbingStairs_70_dynamicProgramming(self, n=1):
+        stairsList = [0, 1, 2]
+        for i in range(3, n + 1):
+            stairsList.append(stairsList[i - 1] + stairsList[i - 2])
+        print(stairsList[n])
+
+    """
+        118. 杨辉三角：给定一个非负整数 numRows，生成「杨辉三角」的前 numRows 行。在「杨辉三角」中，每个数是它左上方和右上方的数的和。
+            标签：数组，动态规划
+            https://leetcode.cn/problems/pascals-triangle/
+    """
+
+    def pascalsTriangle_118(self, numRows=1):
+        # 思路：只有动态规划一种方法了
+        # 第一层数组包含numRows个元素
+        rows = [[1]]
+        for i in range(1, numRows):
+            lines = [1]
+            for j in range(1, i - 1):
+                lines.append(rows[i - 1][j - 1] + rows[i - 1][j])
+            lines.append(1)
+            rows.append(lines)
+        print(rows)
+
+    """
+        121. 买卖股票的最佳时机：给定一个数组 prices ，它的第 i 个元素 prices[i] 表示一支给定股票第 i 天的价格。
+            你只能选择 某一天 买入这只股票，并选择在 未来的某一个不同的日子 卖出该股票。设计一个算法来计算你所能获取的最大利润。
+            返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 0 。
+            标签：数组，动态规划
+            https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/
+    """
+
+    def bestTimeToBuyAndSellStock_121(self, prices=[]):
+        # 思路1：野蛮粗暴法，双重循环轮询所有元素，找出差值最大的那个
+        maxprice = 0
+        beststart = 0
+        bestend = 0
+        for i in range(len(prices)):
+            for j in range(i, len(prices)):
+                if maxprice < (prices[j] - prices[i]):
+                    maxprice = prices[j] - prices[i]
+                    beststart = i
+                    bestend = j
+        print('最佳买卖点和价格差为：', beststart, bestend, maxprice)
+
+        # 思路2：动态规划，从0开始逐步判断，只需要一重循环。但这种情况只能判断出最大获益，不能定位到具体买卖点
+        maxprice = 0
+        beststart = 0
+        bestend = 0
+        for i in range(1, len(prices)):
+            if (prices[i] - prices[beststart]) > maxprice:
+                bestend = i
+                maxprice = prices[i] - prices[beststart]
+            elif prices[i] < prices[beststart]:
+                beststart = i
+        print('最佳价格差为：', maxprice)
+
+    """
+        125. 验证回文串：如果在将所有大写字符转换为小写字符、并移除所有非字母数字字符之后，短语正着读和反着读都一样。
+                       则可以认为该短语是一个 回文串 。字母和数字都属于字母数字字符。
+                       给你一个字符串 s，如果它是 回文串 ，返回 true ；否则，返回 false 。
+            标签：双指针，字符串
+            https://leetcode.cn/problems/valid-palindrome/
+    """
+
+    def validPalindrome_125(self, s):
+        # 思路1、简单粗暴，先把字符串反转，再比较
+        str = ''
+        for i in range(len(s)):
+            str = str + s[len(s) - i - 1]
+        if s == str:
+            print('该字符串是回文串。')
+        else:
+            print('该字符串不是回文串。')
+
+        # 思路2、模拟双指针，只需循环字符数一半就好了
+        flag = 0
+        for i in range(int(len(s) / 2)):
+            if s[i] != s[len(s) - i - 1]:
+                flag = 1
+                break
+        if flag == 0:
+            print('该字符串是回文串。')
+        else:
+            print('该字符串不是回文串。')
+
+    """
+        136. 只出现一次的数字：给你一个 非空 整数数组 nums ，除了某个元素只出现一次以外，其余每个元素均出现两次。
+             找出那个只出现了一次的元素。你必须设计并实现线性时间复杂度的算法来解决此问题，且该算法只使用常量额外空间。
+             标签：位运算，数组
+             https://leetcode.cn/problems/single-number/
+    """
+
+    def singleNumber_136(self, nums=[]):
+        # 思路1：设计一个HashMap，依次循环判断每个元素，如果在HashMap的key中，就把该key删除，最后剩下来的那个key就是结果
+        singleDict = {}
+        for i in range(len(nums)):
+            if nums[i] in singleDict:
+                singleDict.pop(nums[i])
+            else:
+                singleDict[nums[i]] = 0
+        print(singleDict.keys())
+
+        # 思路2：这个牛叉了，利用异或运算的几个特点：
+        # 一个数和 0 做 XOR 运算等于本身：a⊕0 = a
+        # 一个数和其本身做 XOR 运算等于 0：a⊕a = 0
+        # XOR 运算满足交换律和结合律：a⊕b⊕a = (a⊕a)⊕b = 0⊕b = b
+        # 故而在以上的基础条件上，将所有数字按照顺序做异或运算，最后剩下的结果即为唯一的数字
+        xor = nums[0]
+        for i in range(1, len(nums)):
+            xor = xor ^ nums[i]
+        print(xor)
+
+    """
+        168. Excel表列名称：给你一个整数 columnNumber ，返回它在 Excel 表中相对应的列名称。
+            例如：A -> 1，B -> 2，C -> 3...Z -> 26，AA -> 27，AB -> 28 ...
+            标签：数学，字符串
+            https://leetcode.cn/problems/excel-sheet-column-title/
+    """
+
+    def excelSheetColumnTitle_168(self, columnNumber):
+        # 思路：就相当于算26进制呗，先定一个HashMap，key是1~26，value是A~Z，然后不停地模26
+        tbl = {0: 'Z', 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J',
+               11: 'K', 12: 'L', 13: 'M', 14: 'N', 15: 'O', 16: 'P', 17: 'Q', 18: 'R', 19: 'S', 20: 'T',
+               21: 'U', 22: 'V', 23: 'W', 24: 'X', 25: 'Y', 26: 'Z'
+               }
+        tmpNum = columnNumber
+        s = ''
+        if tmpNum < 27:
+            s = tbl[tmpNum]
+        else:
+            while tmpNum > 0:
+                s = tbl[tmpNum % 26] + s
+                tmpNum = int((tmpNum - 1) / 26)
+        print(s)
 
 
 if __name__ == "__main__":
@@ -411,4 +575,14 @@ if __name__ == "__main__":
     # ea.plusOne_66([0])
     # ea.plusOne_66([9])
     # ea.addBinary_67('10101', '11010110110')
-    ea.sqrtx_69(1365)
+    # ea.sqrtx_69(1365)
+    # a = ea.climbingStairs_70_recursion(50)
+    # a = ea.climbingStairs_70_improvedRecursion(50)
+    # print(a)
+    # ea.climbingStairs_70_dynamicProgramming(2)
+    # ea.pascalsTriangle_118(8)
+    # ea.bestTimeToBuyAndSellStock([3, 5, 67, 1, 9, 80, 1, 1])
+    # ea.validPalindrome_125('hgfiifgh')
+    # ea.singleNumber_136([1, 5, 87, 9, 9, 5, 87, 7, 1])
+    ea.excelSheetColumnTitle_168(78)
+
