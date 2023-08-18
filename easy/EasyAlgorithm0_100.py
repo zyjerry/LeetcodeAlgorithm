@@ -7,7 +7,7 @@
 import math
 
 
-class EasyAlgorithm:
+class EasyAlgorithm0_100:
     """    构造函数，什么都不做    """
 
     def __init__(self):
@@ -423,139 +423,10 @@ class EasyAlgorithm:
             stairsList.append(stairsList[i - 1] + stairsList[i - 2])
         print(stairsList[n])
 
-    """
-        118. 杨辉三角：给定一个非负整数 numRows，生成「杨辉三角」的前 numRows 行。在「杨辉三角」中，每个数是它左上方和右上方的数的和。
-            标签：数组，动态规划
-            https://leetcode.cn/problems/pascals-triangle/
-    """
-
-    def pascalsTriangle_118(self, numRows=1):
-        # 思路：只有动态规划一种方法了
-        # 第一层数组包含numRows个元素
-        rows = [[1]]
-        for i in range(1, numRows):
-            lines = [1]
-            for j in range(1, i - 1):
-                lines.append(rows[i - 1][j - 1] + rows[i - 1][j])
-            lines.append(1)
-            rows.append(lines)
-        print(rows)
-
-    """
-        121. 买卖股票的最佳时机：给定一个数组 prices ，它的第 i 个元素 prices[i] 表示一支给定股票第 i 天的价格。
-            你只能选择 某一天 买入这只股票，并选择在 未来的某一个不同的日子 卖出该股票。设计一个算法来计算你所能获取的最大利润。
-            返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 0 。
-            标签：数组，动态规划
-            https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/
-    """
-
-    def bestTimeToBuyAndSellStock_121(self, prices=[]):
-        # 思路1：野蛮粗暴法，双重循环轮询所有元素，找出差值最大的那个
-        maxprice = 0
-        beststart = 0
-        bestend = 0
-        for i in range(len(prices)):
-            for j in range(i, len(prices)):
-                if maxprice < (prices[j] - prices[i]):
-                    maxprice = prices[j] - prices[i]
-                    beststart = i
-                    bestend = j
-        print('最佳买卖点和价格差为：', beststart, bestend, maxprice)
-
-        # 思路2：动态规划，从0开始逐步判断，只需要一重循环。但这种情况只能判断出最大获益，不能定位到具体买卖点
-        maxprice = 0
-        beststart = 0
-        bestend = 0
-        for i in range(1, len(prices)):
-            if (prices[i] - prices[beststart]) > maxprice:
-                bestend = i
-                maxprice = prices[i] - prices[beststart]
-            elif prices[i] < prices[beststart]:
-                beststart = i
-        print('最佳价格差为：', maxprice)
-
-    """
-        125. 验证回文串：如果在将所有大写字符转换为小写字符、并移除所有非字母数字字符之后，短语正着读和反着读都一样。
-                       则可以认为该短语是一个 回文串 。字母和数字都属于字母数字字符。
-                       给你一个字符串 s，如果它是 回文串 ，返回 true ；否则，返回 false 。
-            标签：双指针，字符串
-            https://leetcode.cn/problems/valid-palindrome/
-    """
-
-    def validPalindrome_125(self, s):
-        # 思路1、简单粗暴，先把字符串反转，再比较
-        str = ''
-        for i in range(len(s)):
-            str = str + s[len(s) - i - 1]
-        if s == str:
-            print('该字符串是回文串。')
-        else:
-            print('该字符串不是回文串。')
-
-        # 思路2、模拟双指针，只需循环字符数一半就好了
-        flag = 0
-        for i in range(int(len(s) / 2)):
-            if s[i] != s[len(s) - i - 1]:
-                flag = 1
-                break
-        if flag == 0:
-            print('该字符串是回文串。')
-        else:
-            print('该字符串不是回文串。')
-
-    """
-        136. 只出现一次的数字：给你一个 非空 整数数组 nums ，除了某个元素只出现一次以外，其余每个元素均出现两次。
-             找出那个只出现了一次的元素。你必须设计并实现线性时间复杂度的算法来解决此问题，且该算法只使用常量额外空间。
-             标签：位运算，数组
-             https://leetcode.cn/problems/single-number/
-    """
-
-    def singleNumber_136(self, nums=[]):
-        # 思路1：设计一个HashMap，依次循环判断每个元素，如果在HashMap的key中，就把该key删除，最后剩下来的那个key就是结果
-        singleDict = {}
-        for i in range(len(nums)):
-            if nums[i] in singleDict:
-                singleDict.pop(nums[i])
-            else:
-                singleDict[nums[i]] = 0
-        print(singleDict.keys())
-
-        # 思路2：这个牛叉了，利用异或运算的几个特点：
-        # 一个数和 0 做 XOR 运算等于本身：a⊕0 = a
-        # 一个数和其本身做 XOR 运算等于 0：a⊕a = 0
-        # XOR 运算满足交换律和结合律：a⊕b⊕a = (a⊕a)⊕b = 0⊕b = b
-        # 故而在以上的基础条件上，将所有数字按照顺序做异或运算，最后剩下的结果即为唯一的数字
-        xor = nums[0]
-        for i in range(1, len(nums)):
-            xor = xor ^ nums[i]
-        print(xor)
-
-    """
-        168. Excel表列名称：给你一个整数 columnNumber ，返回它在 Excel 表中相对应的列名称。
-            例如：A -> 1，B -> 2，C -> 3...Z -> 26，AA -> 27，AB -> 28 ...
-            标签：数学，字符串
-            https://leetcode.cn/problems/excel-sheet-column-title/
-    """
-
-    def excelSheetColumnTitle_168(self, columnNumber):
-        # 思路：就相当于算26进制呗，先定一个HashMap，key是1~26，value是A~Z，然后不停地模26
-        tbl = {0: 'Z', 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J',
-               11: 'K', 12: 'L', 13: 'M', 14: 'N', 15: 'O', 16: 'P', 17: 'Q', 18: 'R', 19: 'S', 20: 'T',
-               21: 'U', 22: 'V', 23: 'W', 24: 'X', 25: 'Y', 26: 'Z'
-               }
-        tmpNum = columnNumber
-        s = ''
-        if tmpNum < 27:
-            s = tbl[tmpNum]
-        else:
-            while tmpNum > 0:
-                s = tbl[tmpNum % 26] + s
-                tmpNum = int((tmpNum - 1) / 26)
-        print(s)
 
 
 if __name__ == "__main__":
-    ea = EasyAlgorithm()
+    ea = EasyAlgorithm0_100()
     # ea.findTwoNumbers_1([1, 3, 5, 7, 9], 10)
     # ea.findTwoNumbers_1([1, 3, 5, 8], 10)
     # ea.palindromicNumber_9(1234543)
@@ -580,9 +451,3 @@ if __name__ == "__main__":
     # a = ea.climbingStairs_70_improvedRecursion(50)
     # print(a)
     # ea.climbingStairs_70_dynamicProgramming(2)
-    # ea.pascalsTriangle_118(8)
-    # ea.bestTimeToBuyAndSellStock([3, 5, 67, 1, 9, 80, 1, 1])
-    # ea.validPalindrome_125('hgfiifgh')
-    # ea.singleNumber_136([1, 5, 87, 9, 9, 5, 87, 7, 1])
-    ea.excelSheetColumnTitle_168(78)
-
