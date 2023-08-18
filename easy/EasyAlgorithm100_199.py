@@ -185,28 +185,39 @@ class EasyAlgorithm100_199:
         M2 = 0x33333333  # 00110011001100110011001100110011
         M4 = 0x0f0f0f0f  # 00001111000011110000111100001111
         M8 = 0x00ff00ff  # 00000000111111110000000011111111
+        MM = 0x0000ffff  # 00000000000000001111111111111111
+
+        newNum = (newNum >> 1 & M1) | ((newNum & M1) << 1)  # 奇偶位互换，这里用了位运算和位的左移右移，理解起来比较难
+        newNum = (newNum >> 2 & M2) | ((newNum & M2) << 2)  # 两位两位互换，原理同上
+        newNum = (newNum >> 4 & M4) | ((newNum & M4) << 4)  # 四位四位互换，原理同上
+        newNum = (newNum >> 8 & M8) | ((newNum & M8) << 8)  # 八位八位互换，原理同上
+        newNum = (newNum >> 16) | ((newNum & MM) << 16)  # 十六位十六位互换，最后一次直接交换，就不需要位运算了。
         print(bin(newNum), newNum)
-        n1 = newNum >> 1 & M1
-        n2 = (newNum & M1) << 1
-        newNum = n1 | n2  # 奇偶位互换，这里用了位运算和位的左移右移，理解起来比较难
-        print(bin(newNum), newNum)
-        n1 = newNum >> 2 & M2
-        n2 = (newNum & M2) << 2
-        newNum = n1 | n2  # 两位两位互换，原理同上
-        print(bin(newNum), newNum)
-        n1 = newNum >> 4 & M4
-        n2 = (newNum & M4) << 4
-        newNum = n1 | n2  # 四位四位互换，原理同上
-        print(bin(newNum), newNum)
-        n1 = newNum >> 8 & M8
-        n2 = (newNum & M8) << 8
-        newNum = n1 | n2  # 八位八位互换，原理同上
-        print(bin(newNum), newNum)
-        n1 = newNum >> 16
-        n2 = newNum << 16
-        newNum = n1 | n2  # 十六位十六位互换，最后一次直接交换，就不需要位运算了。
-        # 但是python右移的时候右边会补0，所以要除一下把补的0去掉
-        print(bin(n1), bin(n2))
+
+    """
+        191. 位1的个数：编写一个函数，输入是一个无符号整数（以二进制串的形式），返回其二进制表达式中数字位数为 '1' 的个数（也被称为汉明重量）。
+            标签：位运算，分治
+            https://leetcode.cn/problems/number-of-1-bits/
+    """
+
+    def numberOf1Bits_191(self, binStr=''):
+        # 思路1、简单粗暴循环一遍，判断1的个数
+        n = 0
+        for i in range(len(binStr)):
+            if binStr[i] == '1':
+                n = n + 1
+        print(n)
+
+        # 思路2、位运算优化。观察这个运算：n & (n−1)n，运算结果恰为把n的二进制位中的最低位的1变为0之后的结果。
+        # 如：6&(6−1)=4,6=(110),4=(100)，运算结果4即为把6的二进制位中的最低位的变为之后的结果。
+        # 这样我们可以利用这个位运算的性质加速我们的检查过程，在实际代码中，我们不断让当前的 n 与 n−1 做与运算，直到 nnn 变为 000 即可。
+        #因为每次运算会使得 n 的最低位的 1 被翻转，因此运算次数就等于 n 的二进制位中 1 的个数。
+        intNum = int(binStr, 2)
+        n = 0
+        while intNum > 0:
+            intNum = intNum & (intNum - 1)
+            n = n + 1
+        print(n)
 
 
 if __name__ == "__main__":
@@ -217,4 +228,5 @@ if __name__ == "__main__":
     # ea.singleNumber_136([1, 5, 87, 9, 9, 5, 87, 7, 1])
     # ea.excelSheetColumnTitle_168(78)
     # ea.majorityElement_169([1, 2, 4, 56, 8, 8, 9, 9, 9, 9, 9, 9, 9])
-    ea.reverseBinaryNum_190('10110101010000010101010000101010')
+    #ea.reverseBinaryNum_190('10110101010000010101010000101010')
+    ea.numberOf1Bits_191('101101010100')
