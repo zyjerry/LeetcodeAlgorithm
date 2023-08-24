@@ -92,7 +92,7 @@ class MediumAlgorithm0_99:
         # 如果它前后字母都相同，那就构成一个新的更长的回文，把这个回文追加入list中；
         # 如果它前后字母不同，那就说明这个字串不能再扩展构成新的更长的回文，不做任何操作。
         # 这样下来list遍历完毕，其最后一个元素就是最长的回文串，时间复杂度大约O(n)
-        # 个人觉得这个算法比力扣官方解答简洁一些，就是lst耗费点空间，不过受力扣官方解答启发，这个lst里的子串内容也可以不记
+        # 个人觉得这个算法比力扣官方解答简洁一些，就是lst耗费点空间，不过受力扣官方解答启发，这个lst里的子串内容也可以不记，只记下标即可
         lst = []
         for i in range(1, len(s) - 1):  # 初始化list
             l = [i, i, s[i]]  # 每个元素也是一个列表，分别记录字串起止位置、子串内容
@@ -103,17 +103,89 @@ class MediumAlgorithm0_99:
             if i == 1 and s[i - 1] == s[i]:  # 如果连续的2个字符相同，也构成回文，塞入初始化列表中
                 ll = [i - 1, i, s[i - 1:i + 1]]
                 lst.append(ll)
-        # print(lst)
         for j in lst:  # 对list中的每个元素判断
             # 如果前后2个字符相同，那么能构成新的更长的回文串，记录起止位置和内容，塞入列表中
             if j[0] != 0 and j[1] != len(s) - 1 and s[j[0] - 1] == s[j[1] + 1]:
                 lll = [j[0] - 1, j[1] + 1, s[j[0] - 1:j[1] + 2]]
                 lst.append(lll)
-        # print(lst)
         print('最大回文串是：', lst[-1][2])
+
+    """
+        6. N 字形变换：将一个给定字符串 s 根据给定的行数 numRows ，以从上往下、从左到右进行 Z 字形排列。
+            比如输入字符串为 "PAYPALISHIRING"，
+            行数为 3 时，排列如下：        行数为 4 时，排列如下：         行数为 5 时，排列如下：
+            P   A   H   N               P     I     N                P       H
+            A P L S I I G               A   L S   I G   +4           A     S I        +6
+            Y   I   R                   Y A   H R       +2           Y   I   R        +4
+                                        P     I                      P L     I G      +2
+                                                                     A       N
+            之后，你的输出需要从左往右逐行读取，产生出一个新的字符串，比如行数为3时："PAHNAPLSIIGYIR"，行数为4时："PINALSIGYAHRPI"。
+            标签：字符串
+            https://leetcode.cn/problems/zigzag-conversion/
+    """
+
+    def zigzagConversion_6(self, s='', numRows=1):
+        # 思路：先找规律，看看每一行字符所在原字符串中的下标序号有什么规律。
+        # 当numRows=2时，第一行0，2，4，6……看作(2+0)*n，第二行1，3，5，7……看作(2+0)*n + (2-1)；
+        # 当numRows=3时，第一行0，4，8，12……看作(3+1)*n,第三行2，6，10，14……看作(3+1)*n + (3-1)；
+        # 当numRows=4时，第一行0，6，12……看作(4+2)*n；第四行3，9，15……看作(4+2)*n + (4-1)；
+        # 当numRows=5时，第一行0，8，16……看作(5+3)*n，第五行4，12，20……看作(5+3)*n + (5-1)。
+
+        # 综合规律看，当需要切割成numRows行时，排列的规律是，头尾两行，每行一个来回都只有一个字符：
+        # 第1行下标：(numRows + numRows -2)*n = (numRows-1)*2n  #n>=0的自然数
+        # 第numRows行下标：第1行下标+numRows-1，即：(numRows-1)*2n + numRows - 1  #n>=0的自然数
+
+        # 头尾两行的序号确定后，再看中间部分第row行下标的规律，每一个来回，都包含2个字符：
+        # 第1个字符：第1行的下标+(row-1) = (numRows-1)*2n + (row-1)；
+        # 第2个字符：第一个字符的下标+(numRows-row)*2 = (numRows-1)*2n + (row-1) + (numRows-row)*2
+
+        # 以下是算法实施步骤。
+        # 1、初始化一个数组，该数组包含numRows个元素，每个元素包含每行的字符串
+        finalLst = [''] * numRows
+        # 2、初始化第一行数据和最后一行数据
+        # 先看看能有几个来回
+        bout = len(s) // ((numRows - 1) * 2) + 1
+        # 再根据回合数写头尾两行字符
+        for i in range(bout):
+            finalLst[0] = finalLst[0] + s[(numRows - 1) * 2 * i]
+            if ((numRows - 1) * 2 * i + numRows - 1) < len(s):
+                finalLst[numRows - 1] = finalLst[numRows - 1] + s[(numRows - 1) * 2 * i + numRows - 1]
+        # 3、初始化中间行的数据
+        for i in range(1, numRows - 1):
+            for j in range(bout):
+                ind = (numRows - 1) * 2 * j + i
+                if ind < len(s):
+                    finalLst[i] = finalLst[i] + s[ind]
+                ind = (numRows - 1) * 2 * j + i + (numRows - i - 1) * 2
+                if ind < len(s):
+                    finalLst[i] = finalLst[i] + s[ind]
+        # 4、把这些list按顺序合并成一个字符串并打印
+        print(''.join(finalLst))
+
+        # 思路2来自力扣官方，看完瞬间觉得我傻了……
+        # 它是初始化一个矩阵，再遍历一遍字符串，判断每个字符应当处于矩阵的什么位置（i和j坐标值），填入矩阵，最后把矩阵中的非空字符拼接起来
+        # 再简化一点，初始化一个列表，再遍历一遍字符串，判断每个字符应当处于哪一行，追加到对应列表元素字符串的末尾
+        # 仔细判断：一个来回需要的元素个数是中间行数*2 + 头尾两行各1个，(numRows-2)*2+2 = (numRows-1)*2
+        # 实际上就是要把每个元素下标模(numRows-1)*2后，按到对应那一行，假若模之后的值为r，那么：
+        # 如果r<numRows，该元素应当按到第r行，否则应当按到第numRows-(r-numRows)-2 = 2*numRows-r-2行
+        finalLst = [''] * numRows
+        for i in range(len(s)):
+            r = i % ((numRows-1)*2)
+            if r < numRows:
+                finalLst[r] = finalLst[r] + s[i]
+            else:
+                finalLst[2*numRows-r-2] = finalLst[2*numRows-r-2] + s[i]
+        print(''.join(finalLst))
+
+
+
+
 
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
     # ma.longestSubstrWithoutRepeatChars_3('abcabcdbb')
-    ma.longestPalindromicSubstr_5('aabcbaeeuiywpwiud')
+    # ma.longestPalindromicSubstr_5('aabcbaeeuiywpwiud')
+    ma.zigzagConversion_6('PAYPALISHIRING', 3)
+    ma.zigzagConversion_6('PAYPALISHIRING', 4)
+    ma.zigzagConversion_6('PAYPALISHIRING', 5)
