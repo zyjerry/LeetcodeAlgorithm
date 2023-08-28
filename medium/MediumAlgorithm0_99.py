@@ -3,6 +3,9 @@
     DATE        AUTHOR        CONTENTS
     2023-08-23  Jerry Chang   Create
 """
+import math
+import re
+from typing import Tuple
 
 
 class MediumAlgorithm0_99:
@@ -18,7 +21,7 @@ class MediumAlgorithm0_99:
             https://leetcode.cn/problems/longest-substring-without-repeating-characters/
     """
 
-    def longestSubstrWithoutRepeatChars_3(self, s):
+    def longestSubstrWithoutRepeatChars_3(self, s: str = '') -> Tuple[int, str]:
         # 思路1：暴力循环，从2开始到字符串最长度，看看每个长度的每个子串是否有重复字符，该算法复杂度O(n!)
         finalStr = ''
         tmpStr = ''
@@ -65,13 +68,15 @@ class MediumAlgorithm0_99:
                 tmpLeft = tmpLeft + 1
         print(finalStr)
 
+        return len(finalStr), finalStr
+
     """
         5. 最长回文子串：给你一个字符串 s，找到 s 中最长的回文子串。如果字符串的反序与原始字符串相同，则该字符串称为回文字符串。
             标签：字符串，动态规划
             https://leetcode.cn/problems/longest-palindromic-substring/
     """
 
-    def longestPalindromicSubstr_5(self, s):
+    def longestPalindromicSubstr_5(self, s: str = '') -> str:
         # 思路1、暴力循环：把每种子串拿出来判断是否回文，取最大的那个。时间复杂度大约O(n**2)
         finalStr = ''
         for i in range(0, len(s) - 1):  # 子串起始位置
@@ -110,6 +115,8 @@ class MediumAlgorithm0_99:
                 lst.append(lll)
         print('最大回文串是：', lst[-1][2])
 
+        return lst[-1][2]
+
     """
         6. N 字形变换：将一个给定字符串 s 根据给定的行数 numRows ，以从上往下、从左到右进行 Z 字形排列。
             比如输入字符串为 "PAYPALISHIRING"，
@@ -124,7 +131,7 @@ class MediumAlgorithm0_99:
             https://leetcode.cn/problems/zigzag-conversion/
     """
 
-    def zigzagConversion_6(self, s='', numRows=1):
+    def zigzagConversion_6(self, s: str = '', numRows: int = 1) -> str:
         # 思路：先找规律，看看每一行字符所在原字符串中的下标序号有什么规律。
         # 当numRows=2时，第一行0，2，4，6……看作(2+0)*n，第二行1，3，5，7……看作(2+0)*n + (2-1)；
         # 当numRows=3时，第一行0，4，8，12……看作(3+1)*n,第三行2，6，10，14……看作(3+1)*n + (3-1)；
@@ -170,13 +177,126 @@ class MediumAlgorithm0_99:
         # 如果r<numRows，该元素应当按到第r行，否则应当按到第numRows-(r-numRows)-2 = 2*numRows-r-2行
         finalLst = [''] * numRows
         for i in range(len(s)):
-            r = i % ((numRows-1)*2)
+            r = i % ((numRows - 1) * 2)
             if r < numRows:
                 finalLst[r] = finalLst[r] + s[i]
             else:
-                finalLst[2*numRows-r-2] = finalLst[2*numRows-r-2] + s[i]
+                finalLst[2 * numRows - r - 2] = finalLst[2 * numRows - r - 2] + s[i]
         print(''.join(finalLst))
 
+        return ''.join(finalLst)
+
+    """
+        7. 整数反转：给你一个 32 位的有符号整数 x ，返回将 x 中的数字部分反转后的结果。
+            如果反转后整数超过 32 位的有符号整数的范围 [−231,  231 − 1] ，就返回 0。假设环境不允许存储 64 位整数（有符号或无符号）。
+            标签：数学
+            https://leetcode.cn/problems/reverse-integer/
+    """
+
+    def reverseInteger_7(self, x: int = 0) -> int:
+        # 思路：不断取模，根据位次乘以10的相应次方累加。
+        # 这里需要注意的是，负数由于后台是以补码存储的，它取模的结果不是个位数，所以要分正负数不同情况处理，很不优雅
+        n = abs(x)
+        i = int(math.log10(abs(x)))
+        finalx = 0
+        while n != 0:
+            print(finalx, n, i)
+            finalx = finalx + (n % 10) * (10 ** i)
+            n = n // 10
+            i = i - 1
+        if x < 0:
+            finalx = -finalx
+        print(finalx)
+        return finalx
+
+    """
+        8. 字符串转换整数 (atoi)：
+            请你来实现一个 myAtoi(string s) 函数，使其能将字符串转换成一个 32 位有符号整数（类似 C/C++ 中的 atoi 函数）。
+            函数 myAtoi(string s) 的算法如下：
+            1）读入字符串并丢弃无用的前导空格
+            2）检查下一个字符（假设还未到字符末尾）为正还是负号，读取该字符（如果有）。 确定最终结果是负数还是正数。 如果两者都不存在，则假定结果为正。
+            3）读入下一个字符，直到到达下一个非数字字符或到达输入的结尾。字符串的其余部分将被忽略。
+            4）将前面步骤读入的这些数字转换为整数（即，"123" -> 123， "0032" -> 32）。如果没有读入数字，则整数为 0 。必要时更改符号（从步骤 2 开始）。
+            5）如果整数数超过 32 位有符号整数范围 [−231,  231 − 1] ，需要截断这个整数，使其保持在这个范围内。
+                具体来说，小于 −231 的整数应该被固定为 −231 ，大于 231 − 1 的整数应该被固定为 231 − 1 。
+            6）返回整数作为最终结果。
+            注意：本题中的空白字符只包括空格字符 ' ' ；除前导空格或数字后的其余字符串外，请勿忽略 任何其他字符。
+            标签：字符串
+            https://leetcode.cn/problems/string-to-integer-atoi/
+    """
+
+    def strToIntegerAtoi_8(self, s: str = '') -> int:
+        # 1、先用正则表达式摒弃所有非+、-、数字的字符
+        ss = re.sub('[^\d+-]', '', s)
+        print(ss)
+
+        # 2、摈弃所有最左边的+、-、0，保留记住+、-号
+        i = 0
+        sign = '+'
+        sss = ''
+        while ss[i] in ['+', '-', '0']:
+            sss = ss[i + 1:]
+            if ss[i] in ['+', '-']:
+                sign = ss[i]
+            i = i + 1
+
+        # 3、再次摈弃所有非数字的字符
+        sss = re.sub('[^\d]', '', sss)
+        print(sss)
+
+        # 4、判断长度是否超出32，若超出，按题意返回−231或230
+        if len(sss) > 32:
+            if sign == '+':
+                print(320)
+                return
+            elif sign == '-':
+                print(-321)
+                return
+
+        # 5、开始计算转换成数字
+        i = 0
+        finalInt = 0
+        while i < len(sss):
+            finalInt = finalInt * 10 + int(sss[i])
+            i = i + 1
+
+        # 6、加上正负号
+        if sign == '-':
+            finalInt = - finalInt
+
+        # 返回结果
+        print(finalInt)
+        return finalInt
+
+    """
+        11. 盛最多水的容器：给定一个长度为 n 的整数数组 height 。有 n 条垂线，第 i 条线的两个端点是 (i, 0) 和 (i, height[i]) 。
+            找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。返回容器可以储存的最大水量。说明：你不能倾斜容器。
+            标签：贪心，数组，双指针
+            https://leetcode.cn/problems/container-with-most-water/
+    """
+
+    def containerWithMostWater_11(self, height: list = []) -> Tuple[int, int, int, int, int]:
+        # 思路1、简单粗暴双重循环，判断并选出最大的容积，时间复杂度O(n**2)
+        idx1, idx2, volume = 0, 0, 0
+        for i in range(len(height) - 1):
+            for j in range(i + 1, len(height)):
+                if volume < (j - i) * min(height[i], height[j]):
+                    idx1, idx2, volume = i, j, (j - i) * min(height[i], height[j])
+        print(idx1, height[idx1], idx2, height[idx2], volume)
+        # return idx1, height[idx1], idx2, height[idx2], volume
+
+        # 思路2、参考力扣官方解答，头尾双指针，移动相对短的指针，判断最大容积，可以证明该方法能够获取最大容积，时间复杂度O(n)
+        idx1, idx2, volume = 0, len(height) - 1, (len(height) - 1) * min(height[0], height[len(height) - 1])
+        i, j = 0, len(height) - 1
+        while i < j:
+            if volume < (j - i) * min(height[i], height[j]):
+                idx1, idx2, volume = i, j, (j - i) * min(height[i], height[j])
+            if height[i] < height[j]:
+                i = i + 1
+            else:
+                j = j - 1
+        print(idx1, height[idx1], idx2, height[idx2], volume)
+        return idx1, height[idx1], idx2, height[idx2], volume
 
 
 
@@ -186,6 +306,9 @@ if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
     # ma.longestSubstrWithoutRepeatChars_3('abcabcdbb')
     # ma.longestPalindromicSubstr_5('aabcbaeeuiywpwiud')
-    ma.zigzagConversion_6('PAYPALISHIRING', 3)
-    ma.zigzagConversion_6('PAYPALISHIRING', 4)
-    ma.zigzagConversion_6('PAYPALISHIRING', 5)
+    # ma.zigzagConversion_6('PAYPALISHIRING', 3)
+    # ma.zigzagConversion_6('PAYPALISHIRING', 4)
+    # ma.zigzagConversion_6('PAYPALISHIRING', 5)
+    # ma.reverseInteger_7(-123)
+    # ma.strToIntegerAtoi_8('-00ieur23857021+hfd-hg3456')
+    ma.containerWithMostWater_11([1, 8, 6, 2, 5, 4, 8, 3, 7])
