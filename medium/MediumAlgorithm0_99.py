@@ -6,6 +6,7 @@
 import math
 import re
 from typing import Tuple
+import operator
 
 
 class MediumAlgorithm0_99:
@@ -298,8 +299,51 @@ class MediumAlgorithm0_99:
         print(idx1, height[idx1], idx2, height[idx2], volume)
         return idx1, height[idx1], idx2, height[idx2], volume
 
+    """
+        15. 三数之和：给你一个整数数组 nums ，判断是否存在三元组 [nums[i], nums[j], nums[k]] 满足：
+            i != j、i != k 且 j != k ，同时还满足 nums[i] + nums[j] + nums[k] == 0 。
+            请你返回所有和为 0 且不重复的三元组。注意：答案中不可以包含重复的三元组。
+            标签：数组，双指针，排序
+            https://leetcode.cn/problems/3sum/
+    """
 
+    def sum3_15(self, nums: list = []) -> set:
+        # 思路1、简单粗暴三重循环判断，由于要求答案中不可以包含重复的三元组，所以这里存储答案使用集合（它不会有重复数据）
+        s = set()
+        for i in range(len(nums) - 2):
+            for j in range(i + 1, len(nums)):
+                for k in range(j + 1, len(nums)):
+                    if nums[i] + nums[j] + nums[k] == 0:
+                        print('nums[', i, ']+nums[', j, ']+nums[', k, '] = ', nums[i], '+', nums[j], '+', nums[k], '=0')
+                        l = [nums[i], nums[j], nums[k]]
+                        l.sort()
+                        s.add(str(l))
+        print(s)
+        # return s
 
+        # 思路2、力扣官方解答：首先将数组排序，然后依然做三重循环。
+        # 但是有一些技巧，为确保不包含重复的三元组，在二重和三重循环中，可以跳过和当前同样的数字；
+        # 同时在末尾增加指针，随着前两重循环将数字向右推，末尾指针也可以向左推，以减少循环次数。
+        nums.sort()
+        print(nums)
+        l = []
+        rightidx = len(nums)
+        s = set()
+        for i in range(len(nums) - 2):
+            for j in range(i + 1, len(nums) - 1):
+                if j == i + 1 or (j > i + 1 and nums[j] != nums[j - 1]):
+                    k = j + 1
+                    while k < rightidx:
+                        if k == j + 1 and nums[i] + nums[j] + nums[k] == 0:
+                            s.add(str([nums[i], nums[j], nums[k]]))
+                            rightidx = k
+                        elif k > j + 1 and nums[k] != nums[k - 1] and nums[i] + nums[j] + nums[k] == 0:
+                            s.add(str([nums[i], nums[j], nums[k]]))
+                            rightidx = k
+                        print(i, j, k, nums[i], nums[j], nums[k], rightidx)
+                        k = k + 1
+        print(s)
+        return s
 
 
 if __name__ == "__main__":
@@ -311,4 +355,5 @@ if __name__ == "__main__":
     # ma.zigzagConversion_6('PAYPALISHIRING', 5)
     # ma.reverseInteger_7(-123)
     # ma.strToIntegerAtoi_8('-00ieur23857021+hfd-hg3456')
-    ma.containerWithMostWater_11([1, 8, 6, 2, 5, 4, 8, 3, 7])
+    # ma.containerWithMostWater_11([1, 8, 6, 2, 5, 4, 8, 3, 7])
+    ma.sum3_15([-1, 0, 1, 2, -1, -4])
