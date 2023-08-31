@@ -327,23 +327,70 @@ class MediumAlgorithm0_99:
         nums.sort()
         print(nums)
         l = []
-        rightidx = len(nums)
         s = set()
         for i in range(len(nums) - 2):
             for j in range(i + 1, len(nums) - 1):
                 if j == i + 1 or (j > i + 1 and nums[j] != nums[j - 1]):
                     k = j + 1
+                    rightidx = len(nums)
                     while k < rightidx:
-                        if k == j + 1 and nums[i] + nums[j] + nums[k] == 0:
-                            s.add(str([nums[i], nums[j], nums[k]]))
-                            rightidx = k
-                        elif k > j + 1 and nums[k] != nums[k - 1] and nums[i] + nums[j] + nums[k] == 0:
+                        if (k == j + 1 or (k > j + 1 and nums[k] != nums[k - 1])) and nums[i] + nums[j] + nums[k] == 0:
                             s.add(str([nums[i], nums[j], nums[k]]))
                             rightidx = k
                         print(i, j, k, nums[i], nums[j], nums[k], rightidx)
                         k = k + 1
         print(s)
         return s
+
+    """
+        16. 最接近的三数之和：给你一个长度为 n 的整数数组 nums 和 一个目标值 target。
+            请你从 nums 中选出三个整数，使它们的和与 target 最接近。返回这三个数的和。假定每组输入只存在恰好一个解。
+            标签：数组，双指针，排序
+            https://leetcode.cn/problems/3sum-closest/
+    """
+
+    def sum3Closest_16(self, nums: list = [], target: int = 0) -> Tuple[int, int, int]:
+        # 思路：该题跟上一题思路一致，只是把条件从三数和为0变成了三数和与某个数最接近
+        nums.sort()
+        print(nums)
+        mindiff = 1000
+        for i in range(len(nums) - 2):
+            for j in range(i + 1, len(nums) - 1):
+                k = j + 1
+                rightidx = len(nums)
+                while k < rightidx:
+                    if nums[i] + nums[j] + nums[k] - target > 0:
+                        rightidx = k
+                    if abs(nums[i] + nums[j] + nums[k] - target) < mindiff:
+                        mindiff = abs(nums[i] + nums[j] + nums[k] - target)
+                        mini = i
+                        minj = j
+                        mink = k
+                    k = k + 1
+        print(mini, minj, mink, nums[mini] + nums[minj] + nums[mink])
+        # return mini, minj, mink, nums[mini] + nums[minj] + nums[mink]
+
+        # 优化思路：两重循环，对于每一个i，找到距离最接近target的j和k，j、k同时向中间靠拢，就又比上一个思路减少一重循环
+        mindiff = 1000
+        for i in range(len(nums) - 2):
+            j = i + 1
+            k = len(nums) - 1
+            while j < k:
+                if abs(nums[i] + nums[j] + nums[k] - target) < mindiff:
+                    mindiff = abs(nums[i] + nums[j] + nums[k] - target)
+                    mini = i
+                    minj = j
+                    mink = k
+                if nums[i] + nums[j] + nums[k] - target > 0:
+                    k = k -1
+                elif nums[i] + nums[j] + nums[k] - target < 0:
+                    j = j + 1
+                else:
+                    break
+            if mindiff ==0:
+                break
+        print(mini, minj, mink, nums[mini] + nums[minj] + nums[mink])
+        return mini, minj, mink, nums[mini] + nums[minj] + nums[mink]
 
 
 if __name__ == "__main__":
@@ -356,4 +403,5 @@ if __name__ == "__main__":
     # ma.reverseInteger_7(-123)
     # ma.strToIntegerAtoi_8('-00ieur23857021+hfd-hg3456')
     # ma.containerWithMostWater_11([1, 8, 6, 2, 5, 4, 8, 3, 7])
-    ma.sum3_15([-1, 0, 1, 2, -1, -4])
+    # ma.sum3_15([-1, 0, 1, 2, -1, -4])
+    ma.sum3Closest_16([-1, 2, 1, -4], 1)
