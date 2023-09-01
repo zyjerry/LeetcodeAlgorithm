@@ -382,15 +382,65 @@ class MediumAlgorithm0_99:
                     minj = j
                     mink = k
                 if nums[i] + nums[j] + nums[k] - target > 0:
-                    k = k -1
+                    k = k - 1
                 elif nums[i] + nums[j] + nums[k] - target < 0:
                     j = j + 1
                 else:
                     break
-            if mindiff ==0:
+            if mindiff == 0:
                 break
         print(mini, minj, mink, nums[mini] + nums[minj] + nums[mink])
         return mini, minj, mink, nums[mini] + nums[minj] + nums[mink]
+
+    """
+    22. 括号生成：数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
+        标签：字符串、动态规划、回溯
+        https://leetcode.cn/problems/generate-parentheses/
+    """
+
+    def generateParentheses_22(self, n: int = 1) -> list:
+        # 思路1：采用动态规划生长的策略（类似于力扣官方解答的方法二回溯法，只是这里没有用递归）：
+        # 1、起始从一个左括号开始；
+        # 2、下一步判断是否可以插入左括号、右括号，如果都可以，生成新的字符分别插入左右括号，推入list中；
+        # 3、list轮询，判断，直至最后一个字符串长度为n * 2。
+        totalLst = ['(']
+        while len(totalLst[len(totalLst) - 1]) < n * 2:
+            # 这里每一轮list都要重新赋值，感觉python体系里list的操做是传地址不是传值
+            # 另外也考虑list如果直接删元素也会给下一轮循环判断条件产生困扰，就不删了，直接赋新值
+            tempLstPre = []  # 存储本轮增加左右括号后的新字符串
+            tempLstAft = totalLst.copy()  # 专门用于循环判断，省得list变化后循环就不对了
+            for j in range(len(tempLstAft)):
+                if tempLstAft[j].count(')') <= n and tempLstAft[j].count(')') < tempLstAft[j].count('('):
+                    str1 = tempLstAft[j] + ')'
+                    tempLstPre.append(str1)
+                if tempLstAft[j].count('(') < n:
+                    str2 = tempLstAft[j] + '('
+                    tempLstPre.append(str2)
+                totalLst = tempLstPre.copy()
+        print(totalLst)
+        # return totalLst
+
+        # 思路2、力扣官网启发，思路和上述我自己的思路差不多，但这里用了递归方式，代码简洁一些
+        ans = []
+
+        def backtrack(S, left, right):
+            if len(S) == 2 * n:
+                ans.append(''.join(S))
+                return
+            if left < n:
+                S.append('(')
+                backtrack(S, left + 1, right)
+                S.pop()
+            if right < left:
+                S.append(')')
+                backtrack(S, left, right + 1)
+                S.pop()
+
+        backtrack([], 0, 0)
+        print(ans)
+        return ans
+
+        # 上面2个思路打印出来的结果可以对比区别，取值的顺序是反的
 
 
 if __name__ == "__main__":
@@ -404,4 +454,5 @@ if __name__ == "__main__":
     # ma.strToIntegerAtoi_8('-00ieur23857021+hfd-hg3456')
     # ma.containerWithMostWater_11([1, 8, 6, 2, 5, 4, 8, 3, 7])
     # ma.sum3_15([-1, 0, 1, 2, -1, -4])
-    ma.sum3Closest_16([-1, 2, 1, -4], 1)
+    # ma.sum3Closest_16([-1, 2, 1, -4], 1)
+    ma.generateParentheses_22(4)
