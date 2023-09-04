@@ -442,6 +442,81 @@ class MediumAlgorithm0_99:
 
         # 上面2个思路打印出来的结果可以对比区别，取值的顺序是反的
 
+    """
+        29. 两数相除：给你两个整数，被除数 dividend 和除数 divisor。将两数相除，要求 不使用 乘法、除法和取余运算。
+            整数除法应该向零截断，也就是截去（truncate）其小数部分。例如，8.345 将被截断为 8 ，-2.7335 将被截断至 -2 。
+            返回被除数 dividend 除以除数 divisor 得到的 商 。
+            注意：假设我们的环境只能存储 32 位 有符号整数，其数值范围是 [−2**31,  2**31 − 1] 。
+            本题中，如果商 严格大于 231 − 1 ，则返回 2**31 − 1 ；如果商 严格小于 -2**31 ，则返回 -2**31 。
+            标签：位运算，数学
+            https://leetcode.cn/problems/divide-two-integers/
+    """
+
+    def divideTwoIntegers_29(self, dividend: int = 0, divisor: int = 1) -> int:
+        # 按题目要求，先对临界情况判断。
+        # 如果被除数=−2**31：若除数=1，则返回−2**31；若除数=-1，则返回2**31 − 1；
+        # 如果除数=−2**31：若被除数=−2**31，则返回1；其余情况返回0；
+        # 如果除数为0 ，返回0
+        if dividend == -(2 ** 31):
+            if divisor == 1:
+                return -2 ** 31
+            elif divisor == -1:
+                return 2 ** 31 - 1
+        if divisor == -(2 ** 31):
+            if dividend == -2 ** 31:
+                return 1
+            else:
+                return 0
+        if divisor == 0:
+            return 0
+
+        # 思路1、笨办法，让被除数不停地减除数，一直减到被除数小于除数
+        i = 0
+        dividend1 = abs(dividend)
+        divisor1 = abs(divisor)
+        while dividend1 > divisor1:
+            i = i + 1
+            dividend1 = dividend1 - divisor1
+
+        if (dividend > 0 > divisor) or (dividend < 0 < divisor):
+            i = - i
+        print(i)
+
+        # return i
+
+        # 思路2、参考力扣官方解答：我们要寻找的是x满足x*divisor<dividend<(x+1)*divisor
+        # 也就是可以在1 ~ 2**31−1 的范围内，用二分查找法定位到x
+        # 其次，在具体的x*divisor<dividend<(x+1)*dividend判断中，如何避免使用乘法，把乘法化为快速加，这里增加一个单独的函数定义
+        def fastAdd(xx: int = 0, yy: int = 0) -> int:
+            x1, y1 = xx, yy
+            while y1 > 1:
+                if (y1 & 1) == 1:  # 看y1的位数是否奇数，如果是奇数，x = x*2 +y
+                    x1 = (x1 << 1) + x1
+                else:  # 如果y1是偶数，x = x*2
+                    x1 = x1 << 1
+                y1 = y1 >> 1  # 无论y1是奇数还是偶数，y1整除2，继续下一轮循环
+            return x1
+
+        # 二分法判断x
+        x, left, right = 2 ** 31 >> 1, 0, 2 ** 31
+        dividend1 = abs(dividend)
+        divisor1 = abs(divisor)
+        while True:
+            a = fastAdd(x, divisor1)
+            if a <= dividend1 <= a + divisor1:
+                break
+            elif a + divisor1 < dividend1:
+                left = x
+                x = (right + left) >> 1
+            elif dividend1 < a:
+                right = x
+                x = (right + left) >> 1
+
+        if (dividend > 0 > divisor) or (dividend < 0 < divisor):
+            x = - x
+        print(x)
+        return x
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -455,4 +530,6 @@ if __name__ == "__main__":
     # ma.containerWithMostWater_11([1, 8, 6, 2, 5, 4, 8, 3, 7])
     # ma.sum3_15([-1, 0, 1, 2, -1, -4])
     # ma.sum3Closest_16([-1, 2, 1, -4], 1)
-    ma.generateParentheses_22(4)
+    # ma.generateParentheses_22(4)
+    # ma.divideTwoIntegers_29(8, 3)
+    ma.divideTwoIntegers_29(-10, 3)
