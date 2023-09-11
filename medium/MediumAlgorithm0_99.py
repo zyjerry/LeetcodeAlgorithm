@@ -517,6 +517,53 @@ class MediumAlgorithm0_99:
         print(x)
         return x
 
+    """
+        31. 下一个排列：整数数组的 下一个排列 是指其整数的下一个字典序更大的排列。
+            更正式地，如果数组的所有排列根据其字典顺序从小到大排列在一个容器中，那么数组的 下一个排列 就是在这个有序容器中排在它后面的那个排列。
+            如果不存在下一个更大的排列，那么这个数组必须重排为字典序最小的排列（即，其元素按升序排列）。
+            例如，arr = [1,2,3] 的下一个排列是 [1,3,2] 。类似地，arr = [2,3,1] 的下一个排列是 [3,1,2] 。
+            而 arr = [3,2,1] 的下一个排列是 [1,2,3] ，因为 [3,2,1] 不存在一个字典序更大的排列。
+            给你一个整数数组 nums ，找出 nums 的下一个排列。必须 原地 修改，只允许使用额外常数空间。
+            标签：数组，双指针
+            https://leetcode.cn/problems/next-permutation/
+    """
+
+    def nextPermutation_31(self, num: list = []) -> list:
+        # 思路：
+        # 1、从右往左，找到第一个num[i]<num[i+1]的位置i，这个i是最靠右的相对较小可以换的数字；
+        # 2、此时i右边的数列一定是降序排列的，从右往左，找到第一个num[j]>num[i]的位置j；
+        # 3、交换i和j的值，此时i右边的数列依然是降序排列的，将其反转即可
+        i = len(num) - 1
+        flag = True
+        # 定位i
+        while flag:
+            if num[i] > num[i - 1] or i == 0:
+                flag = False
+            i = i - 1
+        # 如果num完全是倒序排列的，那就返回正序排列值
+        if i == -1:
+            num.reverse()
+            print('完全是倒序排列的', num)
+        # 否则，
+        else:
+            # 再从右往左，找到第一个num[j]>num[i]的位置j
+            j = len(num) - 1
+            while num[j] < num[i] and j != i:
+                j = j - 1
+            # 交换num[i]和num[j]的值
+            a = num[i]
+            num[i] = num[j]
+            num[j] = a
+            print('i=', i, 'j=', j, '交换num[i]和num[j]的值', num)
+            # i后面的数列倒叙排序
+            for k in range((len(num) - i) // 2):
+                print('k=', k, '(len(num) - i) // 2=', (len(num) - i) // 2)
+                a = num[len(num) - k - 1]
+                num[len(num) - k - 1] = num[i + k + 1]
+                num[i + k + 1] = a
+            print('排序后的值：', num)
+        return num
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -532,4 +579,7 @@ if __name__ == "__main__":
     # ma.sum3Closest_16([-1, 2, 1, -4], 1)
     # ma.generateParentheses_22(4)
     # ma.divideTwoIntegers_29(8, 3)
-    ma.divideTwoIntegers_29(-10, 3)
+    # ma.divideTwoIntegers_29(-10, 3)
+    ma.nextPermutation_31([1, 2, 3, 4, 5, 6])
+    ma.nextPermutation_31([1, 2, 5, 6, 4, 3])
+    ma.nextPermutation_31([6, 5, 4, 3, 2, 1])
