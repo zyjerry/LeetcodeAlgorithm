@@ -564,6 +564,96 @@ class MediumAlgorithm0_99:
             print('排序后的值：', num)
         return num
 
+    """
+        33. 搜索旋转排序数组：整数数组 nums 按升序排列，数组中的值 互不相同 。
+            在传递给函数之前，nums 在预先未知的某个下标 k（0 <= k < nums.length）上进行了 旋转，使数组变为
+             [nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]（下标 从 0 开始 计数）。
+            例如， [0,1,2,4,5,6,7] 在下标 3 处经旋转后可能变为 [4,5,6,7,0,1,2] 。
+            给你 旋转后 的数组 nums 和一个整数 target ，如果 nums 中存在这个目标值 target ，则返回它的下标，否则返回 -1 。
+            你必须设计一个时间复杂度为 O(log n) 的算法解决此问题。
+            标签：数组，二分查找
+            https://leetcode.cn/problems/search-in-rotated-sorted-array/
+    """
+
+    def searchInRotatedArray_33(self, nums: list = [], target: int = 0) -> int:
+        # 根据旋转数组的定义，第一个数肯定大于最后一个数：nums[0]>nums[n-1]，但我们不知道最大值或最小值所在的位置
+
+        # 思路1：首先用二分查找法定位最大值或最小值所在的位置，其次再用二分查找法找到target的位置，这个时间复杂度相当于O(2 * log n)
+        beginidx = 0
+        endidx = len(nums) - 1
+        while endidx > beginidx:
+            i = (endidx + beginidx) // 2
+            if nums[i] < nums[0]:
+                beginidx = (i + beginidx) // 2
+                endidx = i
+            else:
+                endidx = (endidx + i) // 2
+                beginidx = i
+
+        # 此时i是最大数所在的位置
+        print('最大值的位置在', i)
+
+        # 用二分查找法定位target，先确定在哪半边
+        if nums[0] <= target <= nums[i]:
+            beginidx = 0
+            endidx = i
+        elif nums[i + 1] <= target <= nums[len(nums) - 1]:
+            beginidx = i + 1
+            endidx = len(nums) - 1
+        else:
+            print('target', target, '超出数列范围了。')
+            return -1
+        # 再用二分法查找定位
+        while endidx > beginidx:
+            j = (endidx + beginidx) // 2
+            if target == nums[j]:
+                print('target', target, '位置在', j)
+                return j
+            elif target < nums[j]:
+                endidx = j
+            else:
+                beginidx = j + 1
+        j = (endidx + beginidx) // 2
+
+        if target == nums[j]:
+            print('target', target, '位置在', j)
+            return j
+        else:
+            print('target', target, '不在数列中。')
+            return -1
+
+        # 思路2：这是一个变相的二分查找法。
+        # 所以，在做二分查找时，需要判断，每二分出来的三个点数据形状，可能是山峰或者河谷或者上坡，三种情况判断的逻辑略有些不同
+        # 其实if条件可以不用写的那么复杂，这里不优化了
+        # 这个时间复杂度是O(log n)
+        beginidx = 0
+        endidx = len(nums) - 1
+        while endidx > beginidx:
+            i = (endidx + beginidx) // 2
+            if nums[i] < nums[endidx] < nums[beginidx]:  # 河谷型
+                if nums[i] <= target <= nums[endidx]:
+                    beginidx = i
+                elif target >= nums[beginidx] or target < nums[i]:
+                    endidx = i - 1
+            elif nums[endidx] < nums[beginidx] < nums[i]:  # 山峰型
+                if nums[beginidx] <= target <= nums[i]:
+                    endidx = i
+                elif target > nums[i] or target <= nums[endidx]:
+                    beginidx = i + 1
+            elif nums[beginidx] < nums[i] < nums[endidx]:  # 上坡型
+                if nums[beginidx] <= target <= nums[i]:
+                    endidx = i - 1
+                elif nums[i] < target <= nums[endidx]:
+                    beginidx = i + 1
+        i = (endidx + beginidx) // 2
+        print(beginidx, i, endidx)
+        if target == nums[i]:
+            print('target', target, '位置在', i)
+            return j
+        else:
+            print('target', target, '不在数列中。')
+            return -1
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -580,6 +670,7 @@ if __name__ == "__main__":
     # ma.generateParentheses_22(4)
     # ma.divideTwoIntegers_29(8, 3)
     # ma.divideTwoIntegers_29(-10, 3)
-    ma.nextPermutation_31([1, 2, 3, 4, 5, 6])
-    ma.nextPermutation_31([1, 2, 5, 6, 4, 3])
-    ma.nextPermutation_31([6, 5, 4, 3, 2, 1])
+    # ma.nextPermutation_31([1, 2, 3, 4, 5, 6])
+    # ma.nextPermutation_31([1, 2, 5, 6, 4, 3])
+    # ma.nextPermutation_31([6, 5, 4, 3, 2, 1])
+    ma.searchInRotatedArray_33([7, 8, 9, 10, 11, 12, 3, 4, 5], 5)
