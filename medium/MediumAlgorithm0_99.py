@@ -623,7 +623,7 @@ class MediumAlgorithm0_99:
             return -1
 
         # 思路2：这是一个变相的二分查找法。
-        # 所以，在做二分查找时，需要判断，每二分出来的三个点数据形状，可能是山峰或者河谷或者上坡，三种情况判断的逻辑略有些不同
+        # 在做二分查找时，需要判断，每二分出来的三个点数据形状，可能是山峰或者河谷或者上坡，三种情况判断的逻辑略有些不同
         # 其实if条件可以不用写的那么复杂，这里不优化了
         # 这个时间复杂度是O(log n)
         beginidx = 0
@@ -654,6 +654,78 @@ class MediumAlgorithm0_99:
             print('target', target, '不在数列中。')
             return -1
 
+    """
+        34. 在排序数组中查找元素的第一个和最后一个位置。
+            给你一个按照非递减顺序排列的整数数组 nums，和一个目标值 target。请你找出给定目标值在数组中的开始位置和结束位置。
+            如果数组中不存在目标值 target，返回 [-1, -1]。你必须设计并实现时间复杂度为 O(log n) 的算法解决此问题。
+            示例 1：输入：nums = [5,7,7,8,8,10], target = 8，输出：[3,4]
+            示例 2：输入：nums = [5,7,7,8,8,10], target = 6，输出：[-1,-1]
+            标签：数组，二分查找
+            https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/
+    """
+
+    def findPositionsInSortedArray_34(self, nums: list = [], target: int = 0) -> list:
+        # 先判断元素是否在列表中
+        beginidx = 0
+        endidx = len(nums) - 1
+
+        if not target in nums:
+            print('target', target, '不在列表中')
+            return [-1, -1]
+
+        # 思路1：本题难点在于不是要定位一个位置，而是定位一个位置范围。
+        # 在二分查找过程中，最难处理的是当中间二分的值正好等于target的时候，不好移动左右坐标进一步二分，这里只能是把左右坐标往里面缩一格，
+        # 此时最坏的情况就是target在正中间，时间复杂度O(n/2)
+
+        # 直到beginidx和endidx都等于target时才跳出循环
+        while nums[beginidx] < target or nums[endidx] > target:
+            i = (beginidx + endidx) // 2
+            # print('start:', beginidx, i, endidx)
+            if nums[i] == target:  # 中间值等于target时，两边各缩进1位，但也要判断是否等于target，等于的话就不能缩了
+                if nums[beginidx] < target:
+                    beginidx = beginidx + 1
+                if nums[endidx] > target:
+                    endidx = endidx - 1
+            elif nums[i] < target:  # 中间值大于或小于target的时候，就可以二分缩进了
+                beginidx = i + 1
+                if nums[endidx] > target:
+                    endidx = endidx - 1
+            elif nums[i] > target:
+                if nums[beginidx] < target:
+                    beginidx = beginidx + 1
+                endidx = i - 1
+            # print('end:', beginidx, i, endidx)
+
+        # print(beginidx, endidx)
+        # if beginidx == endidx:
+        #     return [beginidx]
+        # else:
+        #     return [beginidx, endidx]
+
+        # 思路2、参考力扣官网，我们要找的两边坐标本质是，寻找第一个num[beginidx]=target 和第一个 num[endidx]>target
+        # 所以用2个二分查找法，分别找beginidx, endidx，力扣官网把它们抽象出一个函数来了，这里没有，就代码重复罗嗦点
+        beginidx = 0
+        endidx = len(nums) - 1
+        while beginidx < endidx:  # 寻找第一个num[i]=target
+            i = (beginidx + endidx) // 2
+            if nums[i] >= target:
+                endidx = i
+            else:
+                beginidx = i + 1
+        leftidx = beginidx
+
+        beginidx = 0
+        endidx = len(nums) - 1
+        while beginidx < endidx:  # 寻找第一个 num[endidx]>target
+            j = (beginidx + endidx) // 2
+            if nums[j] > target:
+                endidx = j
+            else:
+                beginidx = j + 1
+        rightidx = beginidx - 1
+        print('left', leftidx, 'right:', rightidx)
+        return [leftidx, rightidx]
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -673,4 +745,5 @@ if __name__ == "__main__":
     # ma.nextPermutation_31([1, 2, 3, 4, 5, 6])
     # ma.nextPermutation_31([1, 2, 5, 6, 4, 3])
     # ma.nextPermutation_31([6, 5, 4, 3, 2, 1])
-    ma.searchInRotatedArray_33([7, 8, 9, 10, 11, 12, 3, 4, 5], 5)
+    # ma.searchInRotatedArray_33([7, 8, 9, 10, 11, 12, 3, 4, 5], 5)
+    ma.findPositionsInSortedArray_34([5, 7, 7, 8, 8, 8, 9, 10], 8)
