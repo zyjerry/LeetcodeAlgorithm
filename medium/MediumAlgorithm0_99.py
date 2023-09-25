@@ -726,6 +726,85 @@ class MediumAlgorithm0_99:
         print('left', leftidx, 'right:', rightidx)
         return [leftidx, rightidx]
 
+    """
+        36. 有效的数独：请你判断一个 9 x 9 的数独是否有效。只需要 根据以下规则 ，验证已经填入的数字是否有效即可。
+            数字 1-9 在每一行只能出现一次。数字 1-9 在每一列只能出现一次。数字 1-9 在每一个以粗实线分隔的 3x3 宫内只能出现一次。
+            注意：一个有效的数独（部分已被填充）不一定是可解的。只需要根据以上规则，验证已经填入的数字是否有效即可。空白格用 '.' 表示。
+            标签：数组，哈希表，矩阵
+            https://leetcode.cn/problems/valid-sudoku/
+    """
+
+    def validSudoku_36(self, matrix99: list = []) -> bool:
+        # 思路1：先设计一个子程序，入参是9个数，判断这9个数是否重复；再反复调用该子程序，判断每行、每列、每宫是否有重复数字
+        # 这个思路比较慢，相当于整个矩阵遍历了3遍
+        def hasRepNum(nums: list = []) -> bool:
+            a = set()
+            for i in range(9):
+                if nums[i] != '.' and nums[i] in a:
+                    return False
+                elif nums[i] != '.' and nums[i] not in a:
+                    a.add(nums[i])
+            return True
+
+        # 判断每一行
+        for i in range(9):
+            if not hasRepNum(matrix99[i]):
+                print('False')
+                return False
+        # 判断每一列
+        for i in range(9):
+            l = []
+            for j in range(9):
+                l.append(matrix99[j][i])
+            if not hasRepNum(l):
+                print('False')
+                return False
+        # 判断每一宫
+        for i in range(3):
+            for j in range(3):
+                l = []
+                for k in range(3):
+                    for m in range(3):
+                        l.append(matrix99[i * 3 + k][j * 3 + m])
+                if not hasRepNum(l):
+                    print('False')
+                    return False
+        # 最终
+        print('True')
+        return True
+
+        # 思路2：构造哈希表，存储每行、每列、每宫中，每个数字出现的次数，当次数超过1时即为False。只需遍历矩阵1次，相当于时间换空间
+        # 每行、每列key的规则：两位数字，第一位0-8表示0-8行，9-17表示0-8列；第二位1-9表示数字，对应value值初始化为0
+        # 每宫key的规则：三位数字，前两位分别是0-8表示每宫最左上角的坐标，第三位1-9表示数字，对应value值初始化为0
+
+        # 初始化哈希表
+        hm = {}
+        for i in range(18):
+            for j in range(9):
+                hm[str(i) + str(j + 1)] = 0
+        for i in range(3):
+            for j in range(3):
+                for k in range(9):
+                    hm[str(i * 3) + str(j * 3) + str(k + 1)] = 0
+        print(hm)
+        # 遍历矩阵，计算数字出现次数，并计入相应哈希表
+        for i in range(9):
+            for j in range(9):
+                if matrix99[i][j] != '.':
+                    hm[str(i) + matrix99[i][j]] = hm[str(i) + matrix99[i][j]] + 1  # 行
+                    hm[str(9 + j) + matrix99[i][j]] = hm[str(9 + j) + matrix99[i][j]] + 1  # 列
+                    hm[str(i - i % 3) + str(j - j % 3) + matrix99[i][j]] \
+                        = hm[str(i - i % 3) + str(j - j % 3) + matrix99[i][j]] + 1  # 宫
+        print(hm)
+
+        # 判断哈希表中是否有超过1次的情况，这个也可以放到上面那个循环里提升时间效率，为清晰展示单独拿出来
+        for i in hm.keys():
+            if hm[i] > 1:
+                print('False')
+                return False
+        print('True')
+        return True
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -746,4 +825,16 @@ if __name__ == "__main__":
     # ma.nextPermutation_31([1, 2, 5, 6, 4, 3])
     # ma.nextPermutation_31([6, 5, 4, 3, 2, 1])
     # ma.searchInRotatedArray_33([7, 8, 9, 10, 11, 12, 3, 4, 5], 5)
-    ma.findPositionsInSortedArray_34([5, 7, 7, 8, 8, 8, 9, 10], 8)
+    # ma.findPositionsInSortedArray_34([5, 7, 7, 8, 8, 8, 9, 10], 8)
+    ma.validSudoku_36([["8", "3", ".", ".", "7", ".", ".", ".", "."]
+                          , ["6", "8", ".", "1", "9", "5", ".", ".", "."]
+                          , [".", "9", ".", ".", ".", ".", ".", "6", "."]
+
+                          , [".", ".", ".", ".", "6", ".", ".", ".", "3"]
+                          , ["4", ".", ".", "8", ".", "3", ".", ".", "1"]
+                          , ["7", ".", ".", ".", "2", ".", ".", ".", "6"]
+
+                          , [".", "6", ".", ".", ".", ".", "2", "8", "."]
+                          , [".", ".", ".", "4", "1", "9", ".", ".", "5"]
+                          , [".", ".", ".", ".", "8", ".", ".", "7", "9"]]
+                      )
