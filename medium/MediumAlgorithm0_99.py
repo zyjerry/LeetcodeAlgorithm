@@ -848,6 +848,143 @@ class MediumAlgorithm0_99:
         print(finalStr)
         return finalStr
 
+    """
+        39. 组合总和：给你一个 无重复元素 的整数数组 candidates 和一个目标整数 target ，
+            找出 candidates 中可以使数字和为目标数 target 的 所有 不同组合 ，并以列表形式返回。你可以按 任意顺序 返回这些组合。
+            candidates 中的 同一个 数字可以 无限制重复被选取 。如果至少一个数字的被选数量不同，则两种组合是不同的。 
+            对于给定的输入，保证和为 target 的不同组合数少于 150 个。
+            标签：数组，回溯
+            https://leetcode.cn/problems/combination-sum/
+    """
+
+    def combinationSum_39(self, candidates: list = [], target: int = 0) -> list:
+        # 0、先把所有元素补上重复的部分，再从小到大排序。
+        # 补重复的原则是补上target//i个，比如target是7，有个元素是2，那么就补2个，一共3个；有个元素是3，那么就补1个，共2个。
+        # 例如：candidates = [2,3,6,7], target = 7，那么补充排序后的列表是：[2,2,2,3,3,6,7]
+        #      candidates = [2,3,5], target = 8，那么补充排序后的列表是：[2,2,2,2,3,3,5]
+        # 最终形成一个二维列表如[[2,2,2,2],[3,3],[5]]
+        candidates.sort()
+        readyL = []
+        for i in candidates:
+            a = []
+            for j in range(target // i):
+                a.append(i)
+            readyL.append(a)
+        print(readyL)
+
+        # 死办法，每种组合都尝试一遍，看看组合是否等于tartget
+        # 1、把每个组合都枚举出来，形成二维数组finalL，每个元素包含n个数字，分别代表n个不同值的系数
+        allCoeL = []
+        for j in range(len(readyL[0]) + 1):
+            allCoeL.append([j])
+        for i in range(1, len(readyL)):
+            tempL = []
+            for k in range(len(allCoeL)):
+                for j in range(len(readyL[i]) + 1):
+                    tempL.append(allCoeL[k] + [j])
+            allCoeL = tempL
+        print(len(allCoeL), allCoeL)
+        # 2、计算每个组合的和是否等于target，把组合系数先提出来
+        combCoeL = []
+        for i in range(len(allCoeL)):
+            s = 0
+            for j in range(len(allCoeL[i])):
+                s = s + allCoeL[i][j] * readyL[j][0]
+            if s == target:
+                combCoeL.append(allCoeL[i])
+        print(combCoeL)
+        # 3、形成最终的答案列表
+        finalL = []
+        for i in range(len(combCoeL)):
+            l = []
+            for j in range(len(combCoeL[i])):
+                for k in range(combCoeL[i][j]):
+                    l = l + [readyL[j][0]]
+            finalL.append(l)
+        print(finalL)
+        return finalL
+
+    """
+        依然是39题，参考官方答案，使用回溯方法，这里要用到递归函数
+        思路是：重复把target减去候选数组，直到最终target<=0，如果=0则符合条件，把结果加入results中，注意要把过程中每一步减去数字的过程记录下来
+    """
+    def combinationSum_39_LookBack(self, candidates: list = [], target: int = 0) -> list:
+        # 核心递归函数参数：subtarget：目标和
+        #                subtraction本轮被减数
+        #                path：本轮搜索中已经经过的路径，记录已被减去的数字
+        #                result：最终符合条件的结果集
+        def recursionCombSum(subtarget: int = 0, subtraction: int = 0, path: list = [], result: list = []):
+
+            print('begin subtarget:', subtarget, 'subtraction:', subtraction, 'path:', path, 'result:', result)
+            # if subtarget < 0:
+            #     return
+            if subtarget == 0:
+                result.append(path)
+                print('==:', 'subtarget:', subtarget, 'subtraction:', subtraction, 'path:', path, 'result:', result)
+                return
+            if subtarget > 0:
+                for j in candidates:
+                    # 这里做一个剪枝操作
+                    if subtarget - subtraction >= 0:
+                        # 注意这里递归参数的带入，python函数的参数都是传址（引用），而不是传值，
+                        # 但两个list相加会新生成一个对象，不会改变原来的path
+                        recursionCombSum(subtarget - subtraction, j, path + [subtraction], result)
+                        print()
+                return
+
+        results = []
+        t = target
+        for i in candidates:
+            path = []
+            recursionCombSum(t, i, path, results)
+        print(results)
+
+        # 上述递归函数调用结果可以通过打印看出，还是会有很对重复值的，此处再去重
+        for i in results:
+            i.sort()
+        results.sort()
+        for i in results:
+            if results.count(i) > 1:
+                results.remove(i)
+        print(results)
+        return results
+
+    """
+        依然是39题，参考精选答案中的回溯方法和递归函数
+        这个方法和上面的区别是不会产生重复的答案，且有剪枝操作，更为精巧
+        https://leetcode.cn/problems/combination-sum/solutions/14697/hui-su-suan-fa-jian-zhi-python-dai-ma-java-dai-m-2/
+    """
+    def combinationSum_39_LookBack_Winnow(self, candidates: list, target: int):
+
+        size = len(candidates)
+        if size == 0:
+            return []
+        candidates.sort()
+
+        # 递归函数，参数：
+        #   begin：搜索候选数组的起始位置
+        #   path：本轮搜索中已经经过的路径，记录已被减去的数字，
+        #   res：最终符合条件的结果集
+        #   target：目标和
+        def dfs(begin, path, res, target):
+            print('begin', begin, 'path', path, 'res', res, 'target', target)
+            # if target < 0:
+            #     return
+            if target == 0:
+                res.append(path)
+                return
+
+            for index in range(begin, size):
+                residue = target - candidates[index]
+                if residue < 0:
+                    break
+                dfs(index, path + [candidates[index]], res, residue)
+
+        path = []
+        res = []
+        dfs(0, path, res, target)
+        print(res)
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -881,4 +1018,7 @@ if __name__ == "__main__":
     #                       , [".", ".", ".", "4", "1", "9", ".", ".", "5"]
     #                       , [".", ".", ".", ".", "8", ".", ".", "7", "9"]]
     #                   )
-    ma.countAndSay_38(10)
+    # ma.countAndSay_38(10)
+    # ma.combinationSum_39([3, 5, 2], 8)
+    # ma.combinationSum_39_LookBack([3, 5, 2], 8)
+    ma.combinationSum_39_LookBack_Winnow([3, 5, 2], 8)
