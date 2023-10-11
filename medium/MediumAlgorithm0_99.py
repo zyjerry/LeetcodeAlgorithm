@@ -908,6 +908,7 @@ class MediumAlgorithm0_99:
         依然是39题，参考官方答案，使用回溯方法，这里要用到递归函数
         思路是：重复把target减去候选数组，直到最终target<=0，如果=0则符合条件，把结果加入results中，注意要把过程中每一步减去数字的过程记录下来
     """
+
     def combinationSum_39_LookBack(self, candidates: list = [], target: int = 0) -> list:
         # 核心递归函数参数：subtarget：目标和
         #                subtraction本轮被减数
@@ -943,9 +944,12 @@ class MediumAlgorithm0_99:
         for i in results:
             i.sort()
         results.sort()
-        for i in results:
-            if results.count(i) > 1:
-                results.remove(i)
+        i = 0
+        while i < len(results) - 1:
+            if results[i] == results[i + 1]:
+                results.remove(results[i])
+            else:
+                i = i + 1
         print(results)
         return results
 
@@ -954,6 +958,7 @@ class MediumAlgorithm0_99:
         这个方法和上面的区别是不会产生重复的答案，且有剪枝操作，更为精巧
         https://leetcode.cn/problems/combination-sum/solutions/14697/hui-su-suan-fa-jian-zhi-python-dai-ma-java-dai-m-2/
     """
+
     def combinationSum_39_LookBack_Winnow(self, candidates: list, target: int):
 
         size = len(candidates)
@@ -984,6 +989,147 @@ class MediumAlgorithm0_99:
         res = []
         dfs(0, path, res, target)
         print(res)
+
+    """
+        40. 组合总和 II：给定一个整数列表 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合。
+            candidates 可能包含重复数字，每个数字在每个组合中只能使用 一次 。注意：解集不能包含重复的组合。 
+            标签：数组，回溯
+            https://leetcode.cn/problems/combination-sum-ii/
+    """
+
+    def combinationSumII_40(self, candidates: list = [], target: int = 0) -> list:
+
+        # 这题跟上一题不同之处是，不能重复使用列表里的元素，那么在递归函数的调用中，要加上candidates列表参数，
+        # 当使用一个元素后把它从candidates里去掉
+        def dfs(subcandidates: list, path: list, subtarget: int, subtraction: int, result: list):
+            if subtarget == 0:
+                result.append(path)
+                return
+            if subtarget < 0:
+                return
+
+            l = subcandidates.copy()
+            l.remove(subtraction)
+            for i in l:
+                if subtarget - subtraction >= 0:
+                    dfs(l, path + [subtraction], subtarget - subtraction, i, result)
+
+        results = []
+        path = []
+        for j in candidates:
+            dfs(candidates, path, target, j, results)
+
+        print(results)
+
+        # 上述递归函数调用结果可以通过打印看出，还是会有很对重复值的，此处再去重
+        for i in results:
+            i.sort()
+        results.sort()
+        i = 0
+        while i < len(results) - 1:
+            if results[i] == results[i + 1]:
+                results.remove(results[i])
+            else:
+                i = i + 1
+        print(results)
+        return results
+
+        # 官方和精选解答，在递归过程中考虑了重复值和剪枝的问题，比这个更精妙，这里不写了。反正这个已经是我智力极限了，丧……
+
+    """
+    43. 字符串相乘：给定两个以字符串形式表示的非负整数 num1 和 num2，返回 num1 和 num2 的乘积，它们的乘积也表示为字符串形式。
+        注意：不能使用任何内置的 BigInteger 库或直接将输入转换为整数。
+        标签：数学，字符串，模拟
+        https://leetcode.cn/problems/multiply-strings/
+    """
+
+    def multiplyStrings_43(self, str1: str, str2: str) -> int:
+        # 思路1：不完全的模拟整数竖式相乘
+        # 先将str1转换成整数形式
+        i = 0
+        num1 = 0
+        while i < len(str1):
+            num1 = num1 * 10 + int(str1[i])
+            i = i + 1
+        print(num1)
+
+        # 再将str2的每一位乘以num1
+        i = len(str2) - 1
+        num2 = 0
+        while i >= 0:
+            num2 = num2 + int(str2[i]) * num1 * (10 ** (len(str2) - i - 1))
+            i = i - 1
+        print(num2)
+
+        # 思路2：完全的模拟整数竖式相乘，就是str1也一位一位地算
+        i = len(str2) - 1
+        num2 = 0
+        while i >= 0:
+            j = len(str1) - 1
+            num1 = 0
+            while j >= 0:
+                num1 = num1 + int(str2[i]) * int(str1[j]) * (10 ** (len(str1) - j - 1))
+                j = j - 1
+            num2 = num2 + num1 * (10 ** (len(str2) - i - 1))
+            i = i - 1
+        print(num2)
+
+        return num2
+
+    """
+    45. 跳跃游戏 II：给定一个长度为 n 的 0 索引整数数组 nums。初始位置为 nums[0]。
+        每个元素 nums[i] 表示从索引 i 向前跳转的最大长度。
+        换句话说，如果你在 nums[i] = j 处，你可以跳转到任意 nums[i + j] 处: 0 <= j <= nums[i] ，i + j < n
+        返回 从nums[0] 到达 nums[n - 1] 的最小跳跃次数。生成的测试用例可以到达 nums[n - 1]。
+        标签：贪心，数组，动态规划
+        https://leetcode.cn/problems/jump-game-ii/
+    """
+
+    def jumpGameII_45(self, nums: list = []) -> int:
+        # 思路：从nums[0]开始，看看能有几种跳法，把所有跳法加入队列中，再轮询队列中所有元素（子队列），直到到达或者超出nums[n - 1]
+        # 这里也使用递归函数实现，参数：
+        #     resultList：是个双重list，它的每个元素也是个list，记录每个步骤nums的坐标
+        #     beginidx：记录每次路径从哪里开始动态规划
+        #               因为resultList从开始记录了所有过程，但每一轮动态规划迭代后，只需要从最后一轮的若干候选list判断就好了，
+        #               不需要从头判断，否则会死循环
+        def dp(resultList: list, beginidx: int):
+            i = beginidx
+            while i < len(resultList):
+                print('resultList begin', resultList,'i', i,'beginidx',beginidx)
+                d = resultList[i]
+                lastidx = d[len(d) - 1]
+                lastval = nums[lastidx]
+                if lastidx >= len(nums) - 1:  # 终止条件：跳转坐标大于等于num的最大坐标了
+                    return
+                else:  # 否则，继续寻找所有可跳转的方案，并把路径加入resultList
+                    for j in range(1, lastval + 1):
+                        dd = d.copy()
+                        dd.append(lastidx + j)
+                        resultList.append(dd)
+                        # 这里增加一个终止条件，如果当前路径已经到达终点了，那么所有递归终止，这里就是最短路经
+                        # 如果不加终止条件，会把所有路径方案加进去
+                        if lastidx + j == len(nums) -1:
+                            return
+                i = i + 1
+                print('resultList end', resultList, 'i', i, 'resultList长度', len(resultList))
+
+            dp(resultList, i-1)
+
+        # 调用递归函数
+        resultLists = []
+        di = [0]
+        resultLists.append(di)
+        dp(resultLists, 0)
+
+        # 打印结果，此时结果包含所有过程路径
+        print()
+        print(resultLists)
+
+        # 选出最后那个元素就是结果
+        k = resultLists[len(resultLists)-1]
+        l = len(k)
+        print('最短路径的坐标是',k,'步骤数',l)
+        return l
 
 
 if __name__ == "__main__":
@@ -1021,4 +1167,7 @@ if __name__ == "__main__":
     # ma.countAndSay_38(10)
     # ma.combinationSum_39([3, 5, 2], 8)
     # ma.combinationSum_39_LookBack([3, 5, 2], 8)
-    ma.combinationSum_39_LookBack_Winnow([3, 5, 2], 8)
+    # ma.combinationSum_39_LookBack_Winnow([3, 5, 2], 8)
+    # ma.combinationSumII_40([10, 1, 2, 7, 6, 1, 5], 8)
+    # ma.multiplyStrings_43('123', '456')
+    ma.jumpGameII_45([2, 3, 1, 1, 4])
