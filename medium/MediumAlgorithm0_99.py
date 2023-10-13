@@ -1095,7 +1095,7 @@ class MediumAlgorithm0_99:
         def dp(resultList: list, beginidx: int):
             i = beginidx
             while i < len(resultList):
-                print('resultList begin', resultList,'i', i,'beginidx',beginidx)
+                print('resultList begin', resultList, 'i', i, 'beginidx', beginidx)
                 d = resultList[i]
                 lastidx = d[len(d) - 1]
                 lastval = nums[lastidx]
@@ -1108,12 +1108,12 @@ class MediumAlgorithm0_99:
                         resultList.append(dd)
                         # 这里增加一个终止条件，如果当前路径已经到达终点了，那么所有递归终止，这里就是最短路经
                         # 如果不加终止条件，会把所有路径方案加进去
-                        if lastidx + j == len(nums) -1:
+                        if lastidx + j == len(nums) - 1:
                             return
                 i = i + 1
                 print('resultList end', resultList, 'i', i, 'resultList长度', len(resultList))
 
-            dp(resultList, i-1)
+            dp(resultList, i - 1)
 
         # 调用递归函数
         resultLists = []
@@ -1126,10 +1126,47 @@ class MediumAlgorithm0_99:
         print(resultLists)
 
         # 选出最后那个元素就是结果
-        k = resultLists[len(resultLists)-1]
+        k = resultLists[len(resultLists) - 1]
         l = len(k)
-        print('最短路径的坐标是',k,'步骤数',l)
+        print('最短路径的坐标是', k, '步骤数', l)
         return l
+
+    """
+        46. 全排列：给定一个不含重复数字的数组 nums ，返回其 所有可能的全排列 。你可以 按任意顺序 返回答案。
+            标签：数组，回溯
+            https://leetcode.cn/problems/permutations/
+    """
+
+    def permutations_46(self, nums: list = []) -> list:
+        # 思路：设计递归函数，深度回溯方法，列举所有可能的排列
+        # 参数：path：目前已做的排列路径
+        #      candidate：path中元素之外剩下的可选数字
+        #      result：最终的所有排列集合
+        def recursion(path: list, candidate: list, result: list):
+            print('path', path, 'candidate', candidate, 'result', result)
+            # 当所有数字已经排列完成时，加入result结果集
+            if len(path) == len(nums):
+                result.append(path)
+                return
+            # 在剩下可选的数字中，逐个加入path路径。
+            # 注意，由于python函数的参数传递的都是引用（传址），
+            # 所以这里递归调用的时候要新new参数，不能将原path、candidate直接作为参数传入
+            # path+[i]本身就会新声称对象，所以不用显式new一个对象
+            for i in candidate:
+                l2 = candidate.copy()
+                l2.remove(i)
+                recursion(path + [i], l2, result)
+            # 上轮循环完毕后进入下个循环前，要把path的最后一个元素吐出来，否则结果不对
+            if len(path) > 0:
+                num = path[-1]
+                path.pop()
+
+        results = []
+        paths = []
+        candidates = nums.copy()
+        recursion(paths, candidates, results)
+        print('组合数量', len(results), 'results', results)
+        return results
 
 
 if __name__ == "__main__":
@@ -1170,4 +1207,5 @@ if __name__ == "__main__":
     # ma.combinationSum_39_LookBack_Winnow([3, 5, 2], 8)
     # ma.combinationSumII_40([10, 1, 2, 7, 6, 1, 5], 8)
     # ma.multiplyStrings_43('123', '456')
-    ma.jumpGameII_45([2, 3, 1, 1, 4])
+    # ma.jumpGameII_45([2, 3, 1, 1, 4])
+    ma.permutations_46([2, 3, 1, 4])
