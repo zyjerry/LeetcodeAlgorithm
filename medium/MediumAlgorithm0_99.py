@@ -16,6 +16,40 @@ class MediumAlgorithm0_99:
         print('Hello World!')
 
     """
+        2. 两数相加：给你两个 非空 的链表，表示两个非负的整数。它们每位数字都是按照 逆序 的方式存储的，并且每个节点只能存储 一位 数字。
+           请你将两个数相加，并以相同形式返回一个表示和的链表。你可以假设除了数字 0 之外，这两个数都不会以 0 开头。
+
+            示例 1：输入：l1 = [2,4,3], l2 = [5,6,4]，输出：[7,0,8]，解释：342 + 465 = 807.
+            示例 2：输入：l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]，输出：[8,9,9,9,0,0,0,1]
+            标签：递归，链表，数学
+            https://leetcode.cn/problems/add-two-numbers/description/
+    """
+
+    def AddTwoNumbers_2(self, num1: list = [], num2: list = []) -> list :
+        # 思路：从左向右，把对应位置上的数字相加，如果有进位，留到下一轮加入
+        result = []
+        carrynumber = 0
+        a = 0
+        b = 0
+        for i in range(0,max(len(num1),len(num2))):
+            if i<len(num1):
+                a = num1[i]
+            else:
+                a = 0
+            if i<len(num2):
+                b = num2[i]
+            else:
+                b = 0
+            number = (a + b + carrynumber)%10
+            result.append(number)
+            carrynumber =  (a + b + carrynumber)//10
+        if carrynumber > 0:
+            result.append(carrynumber)
+        print(result)
+        return result
+
+
+    """
         3. 无重复字符的最长子串：给定一个字符串 s ，请你找出其中不含有重复字符的 最长子串 的长度。
             示例 1:输入: s = "abcabcbb"，输出: 3 。解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
             标签：哈希表，字符串，滑动窗口
@@ -1208,4 +1242,5 @@ if __name__ == "__main__":
     # ma.combinationSumII_40([10, 1, 2, 7, 6, 1, 5], 8)
     # ma.multiplyStrings_43('123', '456')
     # ma.jumpGameII_45([2, 3, 1, 1, 4])
-    ma.permutations_46([2, 3, 1, 4])
+    # ma.permutations_46([2, 3, 1, 4])
+    ma.AddTwoNumbers_2([9,9,9,9,9,9,9], [9,9,9,9])
