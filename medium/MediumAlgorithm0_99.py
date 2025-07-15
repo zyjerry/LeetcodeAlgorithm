@@ -427,6 +427,73 @@ class MediumAlgorithm0_99:
         return mini, minj, mink, nums[mini] + nums[minj] + nums[mink]
 
     """
+    17. 电话号码的字母组合：给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
+        给出数字到字母的映射如下（与电话9键按键相同）。注意 1 不对应任何字母。
+        示例 1：输入：digits = "23"，输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]
+        标签：哈希表，字符串，回溯
+        https://leetcode.cn/problems/letter-combinations-of-a-phone-number/
+    """
+
+    def tel2monogram_17(self, digits = '') -> list:
+        # 思路：可以用递归的方式，
+        # 这里简单点，就用3个循环，关键是把中间已经组合字符串列表带入下个数字的判断组合
+
+        # 初始化数字和字母的映射表,使用dict类型
+        telDict = {'2':['a','b','c'], '3':['d','e','f'], '4':['g','h','i'], '5':['j','k','l'],
+                   '6':['m','n','o'], '7':['p','q','r','s'], '8':['t','u','v'], '9':['w','x','y','z']}
+        # 存储每个循环后的中间列表，用于下一个循环的输入，初始化为第一个数字对应的字母列表
+        tempList = telDict.get(digits[0])
+        # 存储每个循环后的结果表，作为tempList的输入，初始化为空
+        resultList = []
+
+        # 从输入的第二个数字开始，把tempList和数字对应list的每个元素做双循环组合
+        for i in range(1,len(digits)):
+            print('i:',i)
+            for j in tempList:
+                for k in telDict.get(digits[i]):
+                    resultList.append(j+k)
+            tempList = resultList
+            resultList = []
+        resultList = tempList
+        print(resultList)
+        return resultList
+
+    """
+    18.四数之和：给你一个由 n 个整数组成的数组 nums ，和一个目标值 target 。请你找出并返回满足下述全部条件且不重复的四元组 [nums[a], nums[b], nums[c], nums[d]] （若两个四元组元素一一对应，则认为两个四元组重复）：
+       0 <= a, b, c, d < n
+       a、b、c 和 d 互不相同
+       nums[a] + nums[b] + nums[c] + nums[d] == target
+       你可以按 任意顺序 返回答案 。
+       标签：数组，双指针，排序
+       https://leetcode.cn/problems/4sum/description/
+    """
+
+    def sum4_18(self, nums: list = [], target: int = 0) -> set:
+        # 思路：四循环硬算吧
+        resultSet = set()
+        for p1 in range(len(nums)-3):
+            for p2 in range(p1+1, len(nums)-2):
+                for p3 in range(p2+1, len(nums)-1):
+                    for p4 in range(p3 + 1, len(nums) ):
+                        if (nums[p1]+nums[p2]+nums[p3]+nums[p4])==target:
+                            l = [nums[p1],nums[p2],nums[p3],nums[p4]]
+                            resultSet.add(str(l))
+        print(resultSet)
+        return resultSet
+
+    """
+    19.删除链表的倒数第N个节点：给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。
+       示例：输入：head = [1,2,3,4,5], n = 2，输出：[1,2,3,5]
+       标签：链表，双指针
+       https://leetcode.cn/problems/remove-nth-node-from-end-of-list/description/
+    """
+    def removeNthNodeFromEndOfList_19(self, head:list = [], n:int=0) -> list:
+        resultList = head[0:len(head)-n] + head[len(head)-n+1:len(head)]
+        print(resultList)
+        return resultList
+
+
+    """
     22. 括号生成：数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
         标签：字符串、动态规划、回溯
         https://leetcode.cn/problems/generate-parentheses/
@@ -475,6 +542,22 @@ class MediumAlgorithm0_99:
         return ans
 
         # 上面2个思路打印出来的结果可以对比区别，取值的顺序是反的
+
+    """
+    24.两两交换链表中的节点：给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。
+       你必须在不修改节点内部的值的情况下完成本题（即，只能进行节点交换）。
+       示例：输入：head = [1,2,3,4]，输出：[2,1,4,3]
+       标签：递归，链表
+       https://leetcode.cn/problems/swap-nodes-in-pairs/description/
+    """
+
+    def swapNodesInPairs_24(self, head:list) -> list:
+        for i in range(0,len(head)-1, 2):
+            tmp = head[i]
+            head[i] = head[i+1]
+            head[i+1] = tmp
+        print(head)
+        return head
 
     """
         29. 两数相除：给你两个整数，被除数 dividend 和除数 divisor。将两数相除，要求 不使用 乘法、除法和取余运算。
@@ -1243,4 +1326,7 @@ if __name__ == "__main__":
     # ma.multiplyStrings_43('123', '456')
     # ma.jumpGameII_45([2, 3, 1, 1, 4])
     # ma.permutations_46([2, 3, 1, 4])
-    ma.AddTwoNumbers_2([9,9,9,9,9,9,9], [9,9,9,9])
+    # ma.AddTwoNumbers_2([9,9,9,9,9,9,9], [9,9,9,9])
+    # ma.sum4_18([2,2,2,2,2],8)
+    # ma.removeNthNodeFromEndOfList([1,2,3,4,5], 2)
+    ma.swapNodesInPairs_24([1,2,3,4,5,6])
