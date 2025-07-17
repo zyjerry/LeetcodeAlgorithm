@@ -1275,7 +1275,6 @@ class MediumAlgorithm0_99:
                 recursion(path + [i], l2, result)
             # 上轮循环完毕后进入下个循环前，要把path的最后一个元素吐出来，否则结果不对
             if len(path) > 0:
-                num = path[-1]
                 path.pop()
 
         results = []
@@ -1284,6 +1283,104 @@ class MediumAlgorithm0_99:
         recursion(paths, candidates, results)
         print('组合数量', len(results), 'results', results)
         return results
+
+    """
+    47. 全排列II：给定一个可包含重复数字的序列 nums ，按任意顺序 返回所有不重复的全排列。
+        示例 1：输入：nums = [1,1,2]，输出：[[1,1,2], [1,2,1], [2,1,1]]
+        标签：数组，回溯，排序
+        https://leetcode.cn/problems/permutations-ii/description/
+    """
+
+    def permutationsII_47(self,nums: list = []) -> list:
+        # 思路1：简单粗暴，把递归函数中result参数设置成set类型，让set自行判断去重，这里就不写了
+        # 思路2：加入判断，当待处理元素在之前已经出现过，就跳过不处理
+        def recursion(path: list, candidate: list, result: list):
+            print('path', path, 'candidate', candidate, 'result', result)
+            # 当所有数字已经排列完成时，加入result结果集
+            if len(path) == len(nums):
+                result.append(path)
+                return
+            # 这里和46唯一不同的是，加入判断，当待处理元素在之前已经出现过，就跳过不处理
+            for i in range(len(candidate)):
+                flag = 0
+                for j in range(i):
+                    if candidate[j] == candidate[i]:
+                        flag = 1
+                if flag == 0:
+                    l2 = candidate.copy()
+                    l2.remove(candidate[i])
+                    recursion(path + [candidate[i]], l2, result)
+            # 上轮循环完毕后进入下个循环前，要把path的最后一个元素吐出来，否则结果不对
+            if len(path) > 0:
+                path.pop()
+
+        results = []
+        paths = []
+        candidates = nums.copy()
+        recursion(paths, candidates, results)
+        print('组合数量', len(results), 'results', results)
+        return results
+
+    """
+    48. 旋转图像：给定一个 n × n 的二维矩阵 matrix 表示一个图像。请你将图像顺时针旋转 90 度。
+        你必须在 原地 旋转图像，这意味着你需要直接修改输入的二维矩阵。请不要 使用另一个矩阵来旋转图像。
+        标签：数组，数学，矩阵
+        https://leetcode.cn/problems/rotate-image/description/
+    """
+
+    def rotateImage_48(self,matrix:list ) -> list:
+        # 思路：要求原地旋转图像，那么仅设置一个临时变量
+        # 先旋转最外圈4个顶点，再旋转最外圈顶点之外的所有元素
+        # 外圈旋转完了，把内圈看成新矩阵，思路同上
+        # 下述被注释的代码写得不对，这题挺绕的
+        dim = len(matrix)
+        # 设计一个子程序，每一次执行完成一圈
+        # 参数：n：完成第几圈的旋转,n从0开始
+        def recursion(n:int):
+            print('第',n,"圈")
+            # # 先旋转最外圈4个顶点
+            # tmp = matrix[n][n]
+            # matrix[n][n] = matrix[dim-n-1][n]
+            # matrix[dim-n-1][n] = matrix[dim-n-1][dim-n-1]
+            # matrix[dim-n-1][dim-n-1] = matrix[n][dim-n-1]
+            # matrix[n][dim-n-1] = tmp
+            #
+            # # 再旋转最外圈顶点之外的所有元素，这里j表示循环次数，同时也表示第一列待处理元素的下标dim-n-1
+            # for j in range(n+1,dim-n-1):
+            #     print("j:",j)
+            #     tmp = matrix[j][n]
+            #     print(dim-n-1,j,'->',j,n)
+            #     matrix[j][n] = matrix[dim-n-1][j]
+            #     print(dim-n-j-1, dim-n-1, '->', dim-n-1, j)
+            #     matrix[dim-n-1][j] = matrix[dim-n-j-1][dim-n-1]
+            #     print(n,dim-n-j-1,'->',dim-n-j-1,dim-n-1)
+            #     matrix[dim-n-j-1][dim-n-1] = matrix[n][dim-n-j-1]
+            #     print(j,n,'->',n,dim-n-j-1)
+            #     matrix[n][dim-j-1] = tmp
+        # 下述代码是抄的Leetcode标准答案，但是内循环j的取值方式我没想明白
+        for i in range(dim//2):
+            print('i:',i)
+            for j in range((dim+1)//2):
+                print('    j:',j)
+                tmp = matrix[i][j]
+                print('    ',dim-j-1,i,'->',i,j)
+                matrix[i][j] = matrix[dim - j - 1][i]
+                print('    ',dim-i-1,dim-j-1,'->',dim-j-1,i)
+                matrix[dim - j - 1][i] = matrix[dim - i - 1][dim - j - 1]
+                print('    ',j,dim-i-1, '->',dim-i-1,dim-j-1 )
+                matrix[dim - i - 1][dim - j - 1] = matrix[j][dim - i - 1]
+                print('    ',i,j, '->',j,dim-i-1 )
+                matrix[j][dim - i - 1] = tmp
+                print()
+            print(matrix)
+
+        return matrix
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -1329,4 +1426,7 @@ if __name__ == "__main__":
     # ma.AddTwoNumbers_2([9,9,9,9,9,9,9], [9,9,9,9])
     # ma.sum4_18([2,2,2,2,2],8)
     # ma.removeNthNodeFromEndOfList([1,2,3,4,5], 2)
-    ma.swapNodesInPairs_24([1,2,3,4,5,6])
+    # ma.swapNodesInPairs_24([1,2,3,4,5,6])
+    # ma.permutationsII_47( [1,1,2,2])
+    # ma.rotateImage_48([[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5]])
+    ma.rotateImage_48([[1,2,3,4],[1,2,3,4],[1,2,3,4],[1,2,3,4]])
