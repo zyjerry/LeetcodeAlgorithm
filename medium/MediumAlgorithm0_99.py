@@ -5,6 +5,7 @@
 """
 import math
 import re
+from idlelib.pyshell import restart_line
 from typing import Tuple
 import operator
 
@@ -262,7 +263,7 @@ class MediumAlgorithm0_99:
 
     def strToIntegerAtoi_8(self, s: str = '') -> int:
         # 1、先用正则表达式摒弃所有非+、-、数字的字符
-        ss = re.sub('[^\d+-]', '', s)
+        ss = re.sub('[^\\d+-]', '', s)
         print(ss)
 
         # 2、摈弃所有最左边的+、-、0，保留记住+、-号
@@ -276,7 +277,7 @@ class MediumAlgorithm0_99:
             i = i + 1
 
         # 3、再次摈弃所有非数字的字符
-        sss = re.sub('[^\d]', '', sss)
+        sss = re.sub('[^\\d]', '', sss)
         print(sss)
 
         # 4、判断长度是否超出32，若超出，按题意返回−231或230
@@ -1376,12 +1377,146 @@ class MediumAlgorithm0_99:
 
         return matrix
 
+    """
+    49. 字母以为词分组：给你一个字符串数组，请你将 字母异位词 组合在一起。可以按任意顺序返回结果列表。
+        示例 1:输入: strs = ["eat", "tea", "tan", "ate", "nat", "bat"]，输出: [["bat"],["nat","tan"],["ate","eat","tea"]]
+        标签：数组，哈希表，字符串，排序
+        https://leetcode.cn/problems/group-anagrams/description/
+    """
 
+    def groupAnagrams_49(self,strings:list) -> list:
+        # 思路1：双重循环，硬算，每个单词和其他所有单词比较是否是异位词，是的话放在一起
 
+        # 先定义一个子函数，判断2个单词是否异位词，这里先把字符串劈成单个字母的列表，再将列表排序，再对比，有点子蠢
+        def anagrams(a:str,b:str) -> bool:
+            a1 = list(a)
+            a1.sort()
+            b1 = list(b)
+            b1.sort()
+            if a1==b1:
+                return True
+            else:
+                return False
 
+        strs1 = strings.copy()
+        strs2 = strings.copy()
+        resultList = []
+        # 这个方法有不足，就是无法处理列表中有重复的单词，最终结果是没有重复的
+        for i in strs1:
+            tmpList = [i]
+            strs2.remove(i)
+            for j in strs2:
+                if anagrams(i,j):
+                    tmpList.append(j)
+                    strs1.remove(j)
+                    strs2.remove(j)
+            resultList.append(tmpList)
 
+        print('resultList:', resultList)
+        # return resultList
 
+        # 思路2：使用哈希表，单词排序后的值作为key，符合该条件的所有单词列表作为value
+        # 这个方法可以处理保留列表中重复的单词，另外队友所有单词只排一次序，性能上优于思路1
+        resultDict = {}
+        for i in strings:
+            l1 = list(i)
+            l1.sort()
+            s1= "".join(l1)
+            if s1 in resultDict:
+                resultDict[s1].append(i)
+            else:
+                resultDict[s1] = [i]
 
+        resultList = list(resultDict.values())
+        print('resultList:', resultList)
+        return resultList
+
+    """
+    50. Pow(x,n)：实现 pow(x, n) ，即计算 x 的整数 n 次幂函数。
+        标签：递归，数学
+        https://leetcode.cn/problems/powx-n/description/
+    """
+
+    def pow_50(self, x:int,n:int) -> int:
+        # 思路1：最原始比较蠢的办法，一步一步循环n次乘
+        result = 1
+        for i in range(n):
+            result *= x
+        print(result)
+        # return result
+
+        # 思路2：官方题解方法一：快速幂+递归
+        # 不断平方上来，遇到奇数多乘一个x
+        def quickMul(nn):
+            if nn==0:
+                return 1
+            y = quickMul(nn//2)
+            if (nn%2)==0:
+                y = y * y
+            else:
+                y = y * y * x
+            return y
+
+        result = quickMul(n)
+        print(result)
+        # return result
+
+        # 思路3：官方题解方法二：快速幂+迭代
+        # 思路跟2差不多，只是不用递归的方式表达，用循环
+        result = 1
+        tmpx = x
+        while n>0:
+            if n%2==1:
+                result = result * tmpx
+            tmpx = tmpx * tmpx
+            n = n//2
+        print(result)
+        return result
+
+    """
+    53. 最大子数组和：给你一个整数数组 nums ，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。子数组是数组中的一个连续部分。
+        示例 1：输入：nums = [-2,1,-3,4,-1,2,1,-5,4]，输出：6，解释：连续子数组 [4,-1,2,1] 的和最大，为 6 。
+        标签：数组，分治，动态规划
+        https://leetcode.cn/problems/maximum-subarray/description/
+    """
+
+    def maximumSubarray_53(self, nums: list[int]) -> list[int]:
+        # 思路1：简单粗暴双循环，每种组合都尝试一下，保留和最大的情况
+        maxval = nums[0]
+        maxbegin = 0
+        maxend = 0
+        # i表示每次判断的子数组长度，范围从1到len(nums)
+        for i in range(1, len(nums)+1):
+            # j表示每次判断的起始坐标，范围从0到len(nums)-i
+            for j in range(len(nums)-i+1):
+                print(i,j,j+i-1)
+                # 累计坐标j:j+i-1区间的元素
+                tmplist = nums[j:j+i-1]
+                tmpsum = 0
+                for k in tmplist:
+                    tmpsum += k
+                # 判断是否最大，如是记下来
+                if maxval < tmpsum:
+                    maxval = tmpsum
+                    maxbegin = j
+                    maxend = j+i-1
+        print('maxval:', maxval)
+        print(nums[maxbegin:maxend])
+        # return nums[maxbegin:maxend]
+
+        # 思路2：官方解答，动态规划，这个只能求出最终的和，不能给出具体的数列，性能优于思路1
+        # 假设时刻记录截至当前节点时，前面序列最大的可能和，那么当前的最大值，就是前面序列最大的可能加上当前节点值再取最大
+        # 那么从前到后循环遍历一遍列表，就能够记录完整列表的最大可能和
+        # 初始化，每个节点前面数列和的最大值pre为0，最终所有的数据的和最大值maxSum为第一个元素
+        pre = 0
+        maxSum = nums[0]
+        for i in nums:
+            # 取前序最大值加上当前节点后，与当前节点的最大值
+            pre = max(pre+i, i)
+            # 再取上述和最终结果比较取最大值
+            maxSum = max(maxSum, pre)
+        print(maxSum)
+        return []
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -1429,4 +1564,7 @@ if __name__ == "__main__":
     # ma.swapNodesInPairs_24([1,2,3,4,5,6])
     # ma.permutationsII_47( [1,1,2,2])
     # ma.rotateImage_48([[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5],[1,2,3,4,5]])
-    ma.rotateImage_48([[1,2,3,4],[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+    # ma.rotateImage_48([[1,2,3,4],[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+    # ma.groupAnagrams_49(["eat", "tea", "tan", "ate","eat", "nat", "bat"])
+    # ma.pow_50(2,10)
+    ma.maximumSubarray_53([-2,1,-3,4,-1,2,1,-5,4])
