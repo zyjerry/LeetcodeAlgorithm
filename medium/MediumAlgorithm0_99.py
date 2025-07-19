@@ -1518,6 +1518,91 @@ class MediumAlgorithm0_99:
         print(maxSum)
         return []
 
+    """
+    54. 螺旋矩阵：给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
+        标签：数组，矩阵，模拟
+        https://leetcode.cn/problems/spiral-matrix/description/
+    """
+
+    def spiralMatrix_54(self, matrix:list[list[int]]) -> list[list[int]]:
+        # 思路1：设计一个递归函数，参数是矩阵，执行结果是把该矩阵最外圈元素按顺序推进结果列表中
+        #      再递归执行内圈的矩阵，直至矩阵为单维
+        resultList = []
+
+        def recursion(matrixr:list[list[int]]):
+            rows, cols = len(matrixr), len(matrixr[0])
+
+            # 执行到内圈，有五种情况，分别判断，这样写法有点蠢：
+            # 情况一：空矩阵，针对n*n维正方形矩阵的最后一轮，此时无可争议，直接结束
+            if rows ==0 and cols == 0:
+                return
+            # 情况二：1*1维矩阵，此时无可争议，仅把这一个元素加入结果列表，结束
+            if rows ==1 and cols == 1:
+                resultList.append(matrixr[0][0])
+            # 情况三：n*1维矩阵，单列，此时顺序方向一定是自上而下，依次遍历把元素加入结果列表，结束
+            elif rows > 1 and cols == 1:
+                column = [row[0] for row in matrixr]
+                resultList.extend(column)
+            # 情况四：1*n维矩阵，单行，此时顺序方向一定是自左而右，依次遍历把元素加入结果列表，结束
+            elif rows == 1 and cols > 1:
+                resultList.extend(matrixr[0])
+            # 情况五：m*n维矩阵，此时先把该矩阵外圈按顺序加入结果列表，再基于内圈的新矩阵，继续递归计算
+            else:
+                # 矩阵第一行
+                resultList.extend(matrixr[0])
+                # 矩阵最右列
+                column = [row[cols-1] for row in matrixr]
+                column.pop(0)
+                resultList.extend(column)
+                # 矩阵最下行，从右向左推入结果列表
+                for k in range(cols-2, -1, -1):
+                    resultList.append(matrixr[rows-1][k])
+                # 矩阵最左列，从下而上推入结果列表
+                for l in range(rows-2, 0, -1):
+                    resultList.append(matrixr[l][0])
+                # 递归执行内圈矩阵,由于list不支持直接取子矩阵，只能手工拼一下
+                tmpmatrix = []
+                for i in range(1,rows-1):
+                    tmpmatrix.append(matrixr[i][1:cols-1])
+                recursion(tmpmatrix)
+
+        recursion(matrix)
+        print(resultList)
+        # return resultList
+
+        # 思路2：官网解答方法一，这个比较优雅高效，但是思路有点绕，想了好一会儿才想通
+        # 首先初始化一个同样大小的矩阵，存储每个元素是否已被处理，默认为False
+        rows, columns = len(matrix), len(matrix[0])
+        flagmatrix = [[False] * columns for _ in range(rows)]
+        # 其次解决顺时针绕圈的逻辑，观察可以发现规律：总共就是依次向左、向下、向右、向上不停循环
+        # 我们用一个4*2的数组记录“下一个元素的坐标应该向哪里走”，里面的每一对值分别表示元素坐标的增量
+        # 向左[0, 1]、向下[1, 0]、向右[0, -1]、向上[-1, 0]
+        directions = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+        # directionIndex表示当前应该调转为哪个方向，初始化为0向左，对应directions[0]，它总是在0/1/2/3中循环
+        directionIndex = 0
+        resultList = []
+        # x,y记录每个循环内当前要处理的元素的坐标，初始化为0，0
+        x, y = 0, 0
+        for _ in range(rows * columns):
+            print('当前坐标：',x,y,'当前方向：',directionIndex,directions[directionIndex])
+            # 把元素加入结果列表
+            resultList.append(matrix[x][y])
+            # 把对应坐标标记为“已处理”
+            flagmatrix[x][y] = True
+            # 判断是否要调转方向，条件满足下述任一就要调转：
+            # 1、当前方向的下一个元素已被处理
+            # 2、当前方向的下一个元素所在x、y坐标超出矩阵范围
+            nextrow, nextcol = x + directions[directionIndex][0], y + directions[directionIndex][1]
+            if  not ( (0<= nextrow < rows) and (0 <= nextcol < columns) and not flagmatrix[nextrow][nextcol]):
+                directionIndex = (directionIndex + 1) % 4
+                print('换方向：',directionIndex,directions[directionIndex])
+            # 确定下一个待处理元素坐标
+            x, y = x + directions[directionIndex][0], y + directions[directionIndex][1]
+
+        print(resultList)
+        return resultList
+
+
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
     # ma.longestSubstrWithoutRepeatChars_3('abcabcdbb')
@@ -1567,4 +1652,5 @@ if __name__ == "__main__":
     # ma.rotateImage_48([[1,2,3,4],[1,2,3,4],[1,2,3,4],[1,2,3,4]])
     # ma.groupAnagrams_49(["eat", "tea", "tan", "ate","eat", "nat", "bat"])
     # ma.pow_50(2,10)
-    ma.maximumSubarray_53([-2,1,-3,4,-1,2,1,-5,4])
+    # ma.maximumSubarray_53([-2,1,-3,4,-1,2,1,-5,4])
+    ma.spiralMatrix_54([[1,2,3,4],[5,6,7,8],[9,10,11,12]])
