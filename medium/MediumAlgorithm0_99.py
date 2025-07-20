@@ -6,7 +6,7 @@
 import math
 import re
 from idlelib.pyshell import restart_line
-from typing import Tuple
+from typing import Tuple, List
 import operator
 
 
@@ -1602,6 +1602,163 @@ class MediumAlgorithm0_99:
         print(resultList)
         return resultList
 
+    """
+    55. 跳跃游戏：给你一个非负整数数组 nums ，你最初位于数组的 第一个下标 。数组中的每个元素代表你在该位置可以跳跃的最大长度。
+        判断你是否能够到达最后一个下标，如果可以，返回 true ；否则，返回 false 。
+        示例 1：输入：nums = [2,3,1,1,4],输出：true.
+               解释：可以先跳 1 步，从下标 0 到达下标 1, 然后再从下标 1 跳 3 步到达最后一个下标。
+        标签：贪心，数组，动态规划
+        https://leetcode.cn/problems/jump-game/description/
+    """
+
+    def jumpGame_55(self, nums: list[int]) -> bool:
+        # 思路1：从0开始逐步向右，每一步判断所有可能跳跃到的位置，把位置存储在一个列表里
+        # 每一步同时也判断列表是否包含最末的位置，如果有，说明可以跳到，立刻停止返回True
+        # 如果列表中所有元素都判断完了仍没有包含最末的位置，说明没有，返回False
+        tmpList = [0]
+        flag = False
+        while tmpList != [] and tmpList[0]< len(nums):
+            print(tmpList[0],tmpList)
+            i = tmpList[0]
+            tmpList.pop(0)
+            for j in range(1, nums[i]+1):
+                tmpList.append(i+j)
+            print(tmpList)
+            if (len(nums)-1) in tmpList:
+                flag = True
+                break
+        print('flag:', flag)
+        # return flag
+
+        # 思路2：官方解答，比思路1简单一些。
+        # 对于每一个可以到达的位置x，它使得 x+1,x+2,⋯,x+nums[x] 这些连续的位置都可以到达。
+        # 我们依次遍历数组中的每一个位置，并实时维护 最远可以到达的位置，
+        # 如果 最远可以到达的位置 大于等于数组中的最后一个位置，那就说明最后一个位置可达，我们就可以直接返回 True 作为答案
+        maxindex = 0
+        for i in range(len(nums)):
+            # 为什么要加这个判断：当i超过maxindex时，说明i坐标的元素根本不可到达，那就没必要继续判断了
+            if i <= maxindex:
+                maxindex = max(maxindex, i+nums[i])
+                print('i',i,'maxindex',maxindex)
+                if maxindex>=len(nums)-1:
+                    print('True')
+                    return True
+            else:
+                print('False')
+                return False
+        return False
+
+    """
+    56. 合并区间：以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。
+                请你合并所有重叠的区间，并返回 一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间 。
+        示例 1：输入：intervals = [[1,3],[2,6],[8,10],[15,18]]
+               输出：[[1,6],[8,10],[15,18]]
+               解释：区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
+        标签：数组，排序
+        https://leetcode.cn/problems/merge-intervals/description/
+    """
+
+    def mergeIntervals_56(self, intervals: List[List[int]]) -> List[List[int]]:
+        # 思路：考虑到数据区间不总都是向上的，存在波动的情况，首先要对数组的0坐标值排序，确保排序后区间保持向上
+        # 然后再从左向右逐步判断合并
+        result = intervals
+        result.sort(key=lambda x: x[0])
+
+        i = 0
+        while i < len(result)-1:
+            print(i,len(result),result)
+            # 这里只针对第一个区间再第二个区间左边的情况，假设第一个区间在第二个区间右边就没法判断了
+            if result[i+1][0] <= result[i][1]  and result[i+1][1] >= result[i][0]:
+                l = [min(result[i][0],result[i+1][0]),max(result[i][1],result[i+1][1])]
+                result.pop(i)
+                result.pop(i)
+                result.insert(i,l)
+            else:
+                i = i+1
+        print(result)
+        return result
+
+    """
+    57. 插入区间：给你一个 无重叠的 ，按照区间起始端点排序的区间列表 intervals，
+               其中 intervals[i] = [starti, endi] 表示第 i 个区间的开始和结束，并且 intervals 按照 starti 升序排列。
+               同样给定一个区间 newInterval = [start, end] 表示另一个区间的开始和结束。
+               在 intervals 中插入区间 newInterval，使得 intervals 依然按照 starti 升序排列，且区间之间不重叠（如果有必要的话，可以合并区间）。
+               返回插入之后的 intervals。注意 你不需要原地修改 intervals。你可以创建一个新数组然后返回它。
+        示例 1：输入：intervals = [[1,3],[6,9]], newInterval = [2,5]，输出：[[1,5],[6,9]]
+        标签：数组
+        https://leetcode.cn/problems/insert-interval/description/
+    """
+
+    def insertIntervals_57(self, intervals: List[List[int]], newInterval:list[int,int]) -> List[List[int]]:
+        # 思路：从前到后对已有列表的每个元素和newInterval对比判断，有几种情况：
+        # 情况1、newInterval完全在当前元素的左边不搭界，那么在已有列表左边插入newInterval
+        # 情况2、newInterval和当前元素有重叠，那么修改当前元素，变成和newInterval的并集，此时后续工作是判断当前元素和下一元素是否右重叠，如有则合并，一直到最后
+        # 情况3、newInterval完全在当前元素的右边不搭界，那么循环到下一元素继续判断
+        resultlist = intervals.copy()
+        i = 0
+
+        # 情况1、先判断最左边，直接插入
+        if newInterval[0] <= newInterval[1] < resultlist[0][0] :
+            resultlist.insert(0, newInterval)
+            print(resultlist)
+            return resultlist
+        # 再循环遍历
+        while i < len(intervals):
+            # 情况2、newInterval和当前元素有重叠
+            if not resultlist[i][1] < newInterval[0]:
+                # 合并newInterval和当前元素
+                resultlist[i][0] = min(resultlist[i][0],newInterval[0])
+                resultlist[i][1] = max(resultlist[i][1], newInterval[1])
+                # 循环合并后面有可能重叠的元素
+                j = i+1
+                while j < len(intervals):
+                    if resultlist[i][1] >= resultlist[j][0]:
+                        resultlist[i][1] = max(resultlist[i][1],resultlist[j][1])
+                        del resultlist[j]
+                    else:
+                        j = j + 1
+                break
+            # 情况3、newInterval完全在当前元素的右边不搭界，在下一元素左边也不搭界，则插入这个newInterval
+            elif (i < len(intervals)-1 and newInterval[0] <= newInterval[1] < resultlist[i+1][0]) \
+                    or (i == len(intervals)-1 and resultlist[i][0] < newInterval[0]) :
+                resultlist.insert(i+1, newInterval)
+                break
+
+            # 情况2、情况3都不是的话，进入下一个元素判断
+            i = i + 1
+
+        print(resultlist)
+        return resultlist
+
+    def insertIntervals_57_standard(self, intervals: List[List[int]], newInterval: list[int, int]) -> List[List[int]]:
+        # 思路2：官网答案，比上面这个优雅一些。先遍历所有元素，找出和newInterval有重叠的，最后一起处理，删除合并元素，插入新区间
+        resultlist = []
+        left, right = newInterval
+        flag = False
+        for li, ri in intervals:
+            # newInterval在当前元素左边，插入newInterval
+            if right < li:
+                # 这里要做个标记已经插入newInterval了，后续循环就不要再重复插入了
+                if not flag:
+                    resultlist.append([left, right])
+                    flag = True
+                resultlist.append([li,ri])
+            # newInterval在当前元素右边，插入当前元素
+            elif ri < left:
+                resultlist.append([li,ri])
+            # 有重叠，计算并集
+            else:
+                left = min(left,li)
+                right = max(right,ri)
+            print(li, ri, resultlist,left, right )
+
+        # 最后再考虑newInterval在整个列表最右的情况
+        if resultlist[len(resultlist) - 1][1] < left:
+            resultlist.append([left, right])
+
+        print(resultlist)
+        return resultlist
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -1653,4 +1810,7 @@ if __name__ == "__main__":
     # ma.groupAnagrams_49(["eat", "tea", "tan", "ate","eat", "nat", "bat"])
     # ma.pow_50(2,10)
     # ma.maximumSubarray_53([-2,1,-3,4,-1,2,1,-5,4])
-    ma.spiralMatrix_54([[1,2,3,4],[5,6,7,8],[9,10,11,12]])
+    # ma.spiralMatrix_54([[1,2,3,4],[5,6,7,8],[9,10,11,12]])
+    # ma.jumpGame_55([3,2,1,0,4])
+    # ma.mergeIntervals_56([[1,9],[2,5],[19,20],[10,11],[12,20],[0,3],[0,1],[0,2]])
+    ma.insertIntervals_57_standard(intervals = [[1,3],[6,9],[12,18],[20,25],[28,30]], newInterval = [32,35])
