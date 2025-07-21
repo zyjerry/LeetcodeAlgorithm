@@ -1524,7 +1524,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/spiral-matrix/description/
     """
 
-    def spiralMatrix_54(self, matrix:list[list[int]]) -> list[list[int]]:
+    def  spiralMatrix_54(self, matrix:list[list[int]]) -> list[list[int]]:
         # 思路1：设计一个递归函数，参数是矩阵，执行结果是把该矩阵最外圈元素按顺序推进结果列表中
         #      再递归执行内圈的矩阵，直至矩阵为单维
         resultList = []
@@ -1568,8 +1568,9 @@ class MediumAlgorithm0_99:
 
         recursion(matrix)
         print(resultList)
-        # return resultList
+        return resultList
 
+    def spiralMatrix_54_standard(self, matrix:list[list[int]]) -> list[list[int]]:
         # 思路2：官网解答方法一，这个比较优雅高效，但是思路有点绕，想了好一会儿才想通
         # 首先初始化一个同样大小的矩阵，存储每个元素是否已被处理，默认为False
         rows, columns = len(matrix), len(matrix[0])
@@ -1759,6 +1760,186 @@ class MediumAlgorithm0_99:
         print(resultlist)
         return resultlist
 
+    """
+    59. 螺旋矩阵 II：给你一个正整数 n ，生成一个包含 1 到 n**2 所有元素，且元素按顺时针顺序螺旋排列的 n x n 正方形矩阵 matrix 。
+        标签：数组，矩阵，模拟
+        https://leetcode.cn/problems/spiral-matrix-ii/description/
+    """
+
+    def spiralMatrix_59(self, n: int) -> list[list[int]]:
+        # 思路：参考spiralMatrix_54_standard，本题由于是正方形，并且只是填数而不是原地转置，相对容易一些
+        # 首先初始化一个n*n的矩阵，既作为结果矩阵，也作为判断每个元素是否已被处理，填为0表示没处理
+        resultmatrix = [[0] * n for _ in range(n)]
+        # 其次解决顺时针绕圈的逻辑，观察可以发现规律：总共就是依次向左、向下、向右、向上不停循环
+        # 我们用一个4*2的数组记录“下一个元素的坐标应该向哪里走”，里面的每一对值分别表示元素坐标的增量
+        # 向左[0, 1]、向下[1, 0]、向右[0, -1]、向上[-1, 0]
+        directions = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+        # directionIndex表示当前应该调转为哪个方向，初始化为0向左，对应directions[0]，它总是在0/1/2/3中循环
+        directionIndex = 0
+        # x,y记录每个循环内当前要处理的元素的坐标，初始化为0，0
+        x, y = 0, 0
+        for i in range(n*n):
+            print('当前坐标：',x,y,'当前方向：',directionIndex,directions[directionIndex])
+            # 把数字填入对应位置
+            resultmatrix[x][y] = i+1
+            # 判断是否要调转方向，条件满足下述任一就要调转：
+            # 1、当前方向的下一个元素已被处理
+            # 2、当前方向的下一个元素所在x、y坐标超出矩阵范围
+            nextrow, nextcol = x + directions[directionIndex][0], y + directions[directionIndex][1]
+            if  not ( (0<= nextrow < n) and (0 <= nextcol < n) and resultmatrix[nextrow][nextcol]==0):
+                directionIndex = (directionIndex + 1) % 4
+                print('换方向：',directionIndex,directions[directionIndex])
+            # 确定下一个待处理元素坐标
+            x, y = x + directions[directionIndex][0], y + directions[directionIndex][1]
+
+        print(resultmatrix)
+        return resultmatrix
+
+    """
+    61. 旋转链表：给你一个链表的头节点 head ，旋转链表，将链表每个节点向右移动 k 个位置。
+        示例 1：输入：head = [1,2,3,4,5], k = 2，输出：[4,5,1,2,3]
+        标签：链表，双指针
+        https://leetcode.cn/problems/rotate-list/description/
+    """
+
+    def rotateList_61(self, head: List, k: int) -> List:
+        # 思路1：简单粗暴不值一提，新生成一个链表，把原链表内容按照位移的新位置赋值
+        k = k % len(head)
+        resultlist = [0]*len(head)
+        for i in range(len(head)):
+            newindex = (i+k)%len(head)
+            resultlist[newindex] = head[i]
+
+        print(resultlist)
+        # return resultlist
+
+        # 思路2：原地旋转。
+
+        # 本来想用蛙跳式轮询一遍，但是发现不行，当列表长度和k不能互质的时候，没法遍历到所有元素
+        # i,tmp1,tmp2 = 0,head[0],0
+        # for _ in range(len(head)):
+        #     # 当前元素的目标坐标
+        #     nexti = (i+k)%len(head)
+        #     # 临时存储目标元素值
+        #     tmp2 = head[nexti]
+        #     # 目标元素值填为当前元素值
+        #     head[nexti] = tmp1
+        #     # tmp1赋值为目标元素值，用于下一轮循环作为被填入的内容
+        #     tmp1 = tmp2
+        #     i = nexti
+        # print(head)
+        # return head
+
+        # 这样的话依然只能逐个轮询，一共循环k*n遍
+        for _ in range(k):
+            # 每遍把列表中每个元素向右移动一位
+            tmp = head[len(head)-1]
+            for i in range(len(head)-1,0,-1):
+                head[i] = head[i-1]
+            head[0] = tmp
+        print(head)
+        return head
+
+        # 官网的标准解法是用纯链表数据结构体ListNode实现，思路是：先将给定的链表连接成环，然后将指定位置断开。这里就不用代码实现了。
+
+    """
+    62. 不同路径：一个机器人位于一个 m x n 网格的左上角 （起始点在下图中标记为 “Start” ）。
+        机器人每次只能向下或者向右移动一步。机器人试图达到网格的右下角（在下图中标记为 “Finish” ）。
+        问总共有多少条不同的路径？
+        示例 1：输入：m = 3, n = 7，输出：28
+        标签：数学，动态规划，组合数学
+        https://leetcode.cn/problems/unique-paths/description/
+    """
+
+    def uniquePaths_62(self, m: int, n: int) -> int:
+        # 思路1：典型动态规划，用递归实现。当机器人处于坐标[x,y]时，他能到达目标的方法数=[x+1][y]方法数+[x][y+1]方法数
+        def recursion(x:int,y:int) -> int:
+            # 到达最末端返回1
+            if (x==m and y==n-1) or (x==m-1 and y==n):
+                return 1
+            # 到达最下边缘返回x,y+1)
+            elif (x==m and y<n-1):
+                return recursion(x,y+1)
+            # 到达最右边缘返回(x+1, y)
+            elif (x<m-1 and y==n):
+                return recursion(x+1, y)
+            else:
+                m1 = recursion(x+1,y)
+                m2 = recursion(x,y+1)
+                return m1+m2
+
+        methods = recursion(1,1)
+        print(methods)
+        # return methods
+
+        # 思路2：递归耗空间，不用递归，用小学奥数的标数法，从右下到左上逐步计算方法，一遍完成
+        # 初始化一个(m+1)*(n+1)的矩阵，每个元素记录方法数，这里矩阵多加一个行列是为了便于计算
+        resultlist =  [[0] * (n+1) for _ in range(m+1)]
+        resultlist[m-1][n-2] = 1
+        resultlist[m-2][n-1] = 1
+        # 先把矩阵右下半角部分算完
+        for y in range(n-3,-1,-1): #起始纵坐标y
+            print('y:', y)
+            j = 0
+            while (m-1-j>=0) and (y+j)<n: #横纵坐标到达边界
+                # 计算当前坐标值是下面和右面之和
+                print('x,y',m-1-j, y+j)
+                resultlist[m-1-j][y+j]= resultlist[m-j][y+j] + resultlist[m-1-j][y+j+1]
+                j = j + 1
+            print(resultlist)
+
+        # 再算左上半部分
+        for x in range(m-2,-1,-1): #起始纵坐标y
+            print('x:', x)
+            j = 0
+            while (x-j>=0) : #纵标到达边界
+                # 计算当前坐标值是下面和右面之和
+                print('x,y',x-j, j)
+                resultlist[x-j][j]= resultlist[x-j+1][j] + resultlist[x-j][j+1]
+                j = j + 1
+            print(resultlist)
+        print(resultlist[0][0])
+        # return resultlist[0][0]
+
+        # 思路3：官网方法一，依然是动态规划。
+        # 其实从左上角向右下角，和反方向是一样的，所以不用递归倒推。f(i,j)=f(i−1,j)+f(i,j−1)
+        # 初始条件为 f(0,0)=1，最终的答案即为 f(m−1,n−1)。
+        # 为了方便代码编写，我们可以将所有的 f(0,j) 以及 f(i,0) 都设置为边界条件，它们的值均为 1。
+        resultlist = [[1] * n] + [[1] + [0] * (n - 1) for _ in range(m - 1)]
+        print(resultlist)
+        for i in range(1,m):
+            for j in range(1,n):
+                resultlist[i][j] = resultlist[i-1][j] + resultlist[i][j-1]
+        print(resultlist)
+        # return resultlist[m-1][n-1]
+
+        # 思路4：官网方法二，直接使用组合数学推论。
+        # 从左上角到右下角的过程中，我们需要移动 m+n−2 次，其中有 m−1 次向下移动，n−1 次向右移动。
+        # 因此路径的总数，就等于从 m+n−2 次移动中选择 m−1 次向下移动的方案数，即组合数：
+        print(math.comb(m + n - 2, n - 1))
+        return math.comb(m + n - 2, n - 1)
+
+    """
+    63. 不同路径 II：给定一个 m x n 的整数数组 grid。
+        一个机器人初始位于 左上角（即 grid[0][0]）。机器人尝试移动到 右下角（即 grid[m - 1][n - 1]）。机器人每次只能向下或者向右移动一步。
+        网格中的障碍物和空位置分别用 1 和 0 来表示。机器人的移动路径中不能包含 任何 有障碍物的方格。返回机器人能够到达右下角的不同路径数量。
+        示例 1：输入：obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]，输出：2
+        标签：数组，动态规划，矩阵
+        https://leetcode.cn/problems/unique-paths-ii/description/
+    """
+
+    def uniquePathsII_63(self, obstacleGrid: List[List[int]]) -> int:
+        # 思路1：参考上一题思路3，在循环中增加判断，当该元素为0时，递归函数返回0
+        m,n = len(obstacleGrid),len(obstacleGrid[0])
+        resultlist = [[1] * n] + [[1] + [0] * (n - 1) for _ in range(m - 1)]
+        for i in range(1,m):
+            for j in range(1,n):
+                if obstacleGrid[i][j] == 1:
+                    resultlist[i][j] = 0
+                else:
+                    resultlist[i][j] = resultlist[i-1][j] + resultlist[i][j-1]
+        print(resultlist)
+        return resultlist[m-1][n-1]
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -1813,4 +1994,8 @@ if __name__ == "__main__":
     # ma.spiralMatrix_54([[1,2,3,4],[5,6,7,8],[9,10,11,12]])
     # ma.jumpGame_55([3,2,1,0,4])
     # ma.mergeIntervals_56([[1,9],[2,5],[19,20],[10,11],[12,20],[0,3],[0,1],[0,2]])
-    ma.insertIntervals_57_standard(intervals = [[1,3],[6,9],[12,18],[20,25],[28,30]], newInterval = [32,35])
+    # ma.insertIntervals_57_standard(intervals = [[1,3],[6,9],[12,18],[20,25],[28,30]], newInterval = [32,35])
+    # ma.spiralMatrix_59(5)
+    # ma.rotateList_61([1,2,3,4,5,6], 2)
+    # ma.uniquePaths_62(3,7)
+    ma.uniquePathsII_63([[0,0,0],[0,1,0],[0,0,0]])
