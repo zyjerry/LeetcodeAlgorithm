@@ -1941,6 +1941,225 @@ class MediumAlgorithm0_99:
         print(resultlist)
         return resultlist[m-1][n-1]
 
+    """
+    64. 最小路径和：给定一个包含非负整数的 m x n 网格 grid ，请找出一条从左上角到右下角的路径，使得路径上的数字总和为最小。
+        说明：每次只能向下或者向右移动一步。
+        示例 1：输入：grid = [[1,3,1],[1,5,1],[4,2,1]]，输出：7，解释：因为路径 1→3→1→1→1 的总和最小。
+        标签：数组，动态规划，矩阵
+        https://leetcode.cn/problems/minimum-path-sum/description/
+    """
+
+    def minimumPathSum_64(self, grid: List[List[int]]) -> int:
+        # 思路：动态规划，从左上到右下依次计算每个元素的数字和，计算完毕取最右下角元素数字即可
+        # 由于每次只能向下或者向右，那么后续每个元素值只和左边和上面一行相关，所以可以精简数据结构，只保留上一行数列即可
+        # 这个思路比官解简洁，参照62题官解方法一的最简形式
+        # 初始化上一行数列
+        uplist = []
+        rows, columns = len(grid), len(grid[0])
+        # 每个元素循环判断
+        for i in range(0,rows):
+            tmplist = []
+            for j in range(0,columns):
+                # 第一行、第一列特殊判断一下
+                if i == 0 and j == 0:
+                    tmplist.append(grid[i][j])
+                elif i == 0 and j > 0:
+                    tmplist.append(grid[i][j]+tmplist[j-1])
+                elif j == 0 and i > 0:
+                    tmplist.append(grid[i][j] + uplist[j])
+                # 最后才是通用情况
+                else:
+                    #print(tmplist[j-1], uplist[i-1])
+                    tmplist.append(min(grid[i][j]+tmplist[j-1], grid[i][j] + uplist[j]))
+            uplist = tmplist.copy()
+            print(uplist)
+
+        print(uplist[columns-1])
+        return uplist[columns-1]
+
+    """
+    71. 简化路径：给你一个字符串 path ，表示指向某一文件或目录的 Unix 风格 绝对路径 （以 '/' 开头），请你将其转化为 更加简洁的规范路径。
+        标签：栈，字符串
+        https://leetcode.cn/problems/simplify-path/description/
+    """
+
+    def simplifyPath_71(self, path: str) -> str:
+        # 思路：将path以/为关键字切成多个子串列表，依次对于每个元素判断
+        strlist = path.split('/')
+        print(strlist)
+        resultlist = []
+        # 依次对于每个元素判断
+        for i in strlist:
+            # 如果当前元素是..，把resultlist上次已经追加元素吐出来
+            if i == '..':
+                resultlist.pop()
+                resultlist.pop()
+            # 把空白的、无效的.去掉，其余有效的追加进结果列表
+            elif i !='' and i != '.':
+                resultlist.append('/')
+                resultlist.append(i)
+
+        print(''.join(resultlist))
+        return ''.join(resultlist)
+
+    """
+    72. 编辑距离：给你两个单词 word1 和 word2， 请返回将 word1 转换成 word2 所使用的最少操作数。
+        你可以对一个单词进行如下三种操作：插入一个字符、删除一个字符、替换一个字符
+        示例 1：输入：word1 = "horse", word2 = "ros"，输出：3
+        标签：字符串，动态规划
+        https://leetcode.cn/problems/edit-distance/description/
+    """
+
+    def editDistance_72(self, word1: str, word2: str) -> int:
+        # 思路：这题我不会……快速看官解，第一遍也没看明白。仔细看第二遍模糊明白。看评论很多人也懵了，先跳过吧。
+        return 0
+
+    """
+    73. 矩阵置零：给定一个 m x n 的矩阵，如果一个元素为 0 ，则将其所在行和列的所有元素都设为 0 。请使用 原地 算法。
+        标签：数组，哈希表，矩阵
+        https://leetcode.cn/problems/set-matrix-zeroes/description/
+    """
+
+    def setMatrixZeroes_73(self, matrix: List[List[int]]) -> None:
+        # 思路：逻辑看上去简单，有个陷阱是怎样区分原始矩阵中的0和后来改的0，不能混淆，否则最后全矩阵都会变成0。
+        # 另外主要是看怎么高效，但是我也没想好，先来一版简单粗暴的。
+        # 先遍历矩阵元素，找到0所在的行和列，记在2个列表里，用set集合不重复，再根据set终记录的行列把矩阵对应元素改成0
+        rowset,columnset = set(), set()
+        for x in range(len(matrix)):
+            for y in range(len(matrix[0])):
+                if matrix[x][y] == 0:
+                    rowset.add(x)
+                    columnset.add(y)
+        print(rowset,columnset)
+        print(matrix)
+
+        # 改行
+        for i in rowset:
+            for j in range(len(matrix[0])):
+                matrix[i][j] = 0
+        # 改列
+        for i in columnset:
+            for j in range(len(matrix)):
+                matrix[j][i] = 0
+
+        print(matrix)
+
+    """
+    74. 搜索二维矩阵：给你一个满足下述两条属性的 m x n 整数矩阵：
+                       每行中的整数从左到右按非严格递增顺序排列。
+                       每行的第一个整数大于前一行的最后一个整数。
+                   给你一个整数 target ，如果 target 在矩阵中，返回 true ；否则，返回 false 。
+        示例 1：输入：matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3，输出：true
+        标签：数组，二分查找，矩阵
+        https://leetcode.cn/problems/search-a-2d-matrix/description/
+    """
+
+    def searchA2dMatrix_74(self,matrix: List[List[int]],target:int) -> bool:
+        # 思路：既然matrix内容已经是排序了的，那就是个变相的二分查找啊
+        rows, columns = len(matrix), len(matrix[0])
+        # 把矩阵当成一维列表展开，记录头尾序号
+        begin,end = 0, rows*columns-1
+        # 循环二分查找
+        while begin < end:
+            mid = (begin + end + 1)//2
+            print('[',begin,end,']','mid:',mid,'mid//rows',mid//rows,'mid%rows',mid%rows,matrix[mid//rows][mid%rows])
+            if matrix[mid//rows][mid%rows] == target:
+                print('True')
+                return True
+            elif matrix[mid//rows][mid%rows] > target:
+                end = (begin + end)//2
+            elif matrix[mid//rows][mid%rows] < target:
+                begin = (begin + end)//2
+        print('False')
+        return False
+
+    """
+    75. 颜色分类：给定一个包含红色、白色和蓝色、共 n 个元素的数组 nums ，原地 对它们进行排序，使得相同颜色的元素相邻，并按照红色、白色、蓝色顺序排列。
+                我们使用整数 0、 1 和 2 分别表示红色、白色和蓝色。必须在不使用库内置的 sort 函数的情况下解决这个问题。
+        示例 1：输入：nums = [2,0,2,1,1,0]，输出：[0,0,1,1,2,2]
+        标签：数组，双指针，排序
+        https://leetcode.cn/problems/sort-colors/description/
+    """
+    def sortColors_75(self, nums: List[int]) -> None:
+        # 思路：由于只有3种值，所以做个简单的排序：遍历每个列表元素，如果是0就抽出来插入第一位，如果是2就抽出来插入最末一位，遍历完即可
+        # 过程中需要记录一下往后仍的次数，作为结束循环的判断
+        i, count2 = 0,0
+        while i < len(nums)-count2:
+            print(i,count2)
+            if nums[i] == 0:
+                nums.pop(i)
+                nums.insert(0,0)
+                i = i + 1
+            elif nums[i] == 2:
+                nums.pop(i)
+                nums.append(2)
+                count2 = count2 + 1
+            else:
+                i = i + 1
+            print(nums)
+
+        print(nums)
+
+    """
+    77. 组合：给定两个整数 n 和 k，返回范围 [1, n] 中所有可能的 k 个数的组合。你可以按 任何顺序 返回答案。
+        示例 1：输入：n = 4, k = 2，输出：[  [2,4],  [3,4],  [2,3],  [1,2],  [1,3],  [1,4],]
+        标签：回溯
+        https://leetcode.cn/problems/combinations/description/
+    """
+
+    def combinations_77(self, n: int, k: int) -> list:
+        # 经典排列组合，关键是不需要算有多少种排列组合，而是需要给出结果，我们从k=1开始算：
+        # 从n个数里取1个，有n种方法，然后从剩下来的书中再取一个，加入到原队列，如此一直到k
+        # 先初始化只包含一个元素的队列
+        resultlist = []
+        for i in range(1,n+2-k):
+          resultlist.append([i])
+        print(resultlist)
+        # 因为每个组合都有k个元素，且已初始化一个元素，所以循环k-1遍
+        for i in range(k-1):
+            # 初始化resultlist当前的长度，因为后面要append所以不能变化
+            row = len(resultlist)
+            # 针对当前resultlist里的每个元素，
+            for j in range(row):
+                # 因为都是向后追溯，没必要向前，否则就会出现重复组合，所以要从resultlist当前元素的组合的最后一位数开始即可，确保k不在resultlist[0]中
+                for k in range(resultlist[0][len(resultlist[0])-1]+1,n+1):
+                    tmpl = resultlist[0].copy()
+                    #if k not in tmpl:
+                    tmpl.append(k)
+                    resultlist.append(tmpl)
+                # 组合元素全部添加完后，把第一个元素抛弃掉，下一循环处理下一个元素
+                resultlist.pop(0)
+                print(resultlist)
+
+        print(resultlist)
+        return resultlist
+
+        # 官解方法一递归实现的，方法二通过二进制表示选还是不选某个元素穷举所有组合情况，总体来说性能不比上述思路更好，就不实现了
+
+    """
+    78. 子集：给你一个整数数组 nums ，数组中的元素 互不相同 。返回该数组所有可能的子集（幂集）。
+        解集 不能 包含重复的子集。你可以按 任意顺序 返回解集。
+        示例 1：输入：nums = [1,2,3]，输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+        标签：位运算，数组，回溯
+        https://leetcode.cn/problems/subsets/description/
+    """
+
+    def subsets_78(self, nums: List[int]) -> List[List[int]]:
+        # 思路：和77题有相似之处，可以直接循环调，这里用二进制的思路重写
+        # 假如nums的长度是n，所有可能的组合，相当于所有n位二进制数的组合
+        resultlist = []
+        # 对所有n位二进制数判断
+        for i in range(2 ** len(nums)):
+            tmplist = []
+            # 判断每一位是否应该纳入组合
+            for j in range(len(nums)):
+                if ((2 ** j) & i) >= 1:
+                    tmplist.append(nums[len(nums)-j-1])
+            resultlist.append(tmplist)
+
+        print(resultlist)
+        return resultlist
+
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
     # ma.longestSubstrWithoutRepeatChars_3('abcabcdbb')
@@ -1998,4 +2217,12 @@ if __name__ == "__main__":
     # ma.spiralMatrix_59(5)
     # ma.rotateList_61([1,2,3,4,5,6], 2)
     # ma.uniquePaths_62(3,7)
-    ma.uniquePathsII_63([[0,0,0],[0,1,0],[0,0,0]])
+    # ma.uniquePathsII_63([[0,0,0],[0,1,0],[0,0,0]])
+    # ma.minimumPathSum_64([[1,3,1],[1,5,1],[4,2,1]])
+    # ma.simplifyPath_71("/.../a/../b/c/../d/./")
+    # ma.simplifyPath_71("/home/user/Documents/../Pictures")
+    # ma.setMatrixZeroes_73([[0,1,2,0],[3,4,5,2],[1,3,1,5]])
+    # ma.searchA2dMatrix_74([[1,3,5,7],[10,11,16,20],[23,30,34,60]],3)
+    # ma.sortColors_75([2,0,2,1,1,0])
+    # ma.combinations_77(5,3)
+    ma.subsets_78([1,2,3,4])
