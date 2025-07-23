@@ -5,6 +5,7 @@
 """
 import math
 import re
+from email.quoprimime import body_encode
 from idlelib.pyshell import restart_line
 from typing import Tuple, List
 import operator
@@ -2160,6 +2161,170 @@ class MediumAlgorithm0_99:
         print(resultlist)
         return resultlist
 
+    """
+    79. 单词搜索：给定一个 m x n 二维字符网格 board 和一个字符串单词 word 。如果 word 存在于网格中，返回 true ；否则，返回 false 。
+        单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。
+        标签：深度优先搜索，数组，字符串，回溯，矩阵
+        https://leetcode.cn/problems/word-search/description/
+    """
+
+    def wordSearch_79(self, board: List[List[str]], word: str) -> bool:
+        # 思路：2个指针，分别记录矩阵当前要匹配的元素和单词当前要匹配的字母；另设一个列表记录已匹配到的矩阵元素坐标防止重复使用
+        # 从矩阵最左上角开始遍历，从word第一个字符开始逐个匹配，如果能匹配完到word最后一个字符则返回True
+
+        flag = False
+        vistedlist = []
+        directions = [[-1,0],[0,1],[1,0],[0,-1]] # 上右下左的方向
+
+        # tobematched:上个元素上下左右的待匹配坐标列表；subword：待匹配的子串
+        def recursion(tobematched: List[List[int]], subword: str) -> bool:
+            print('递归函数入口：',tobematched,subword)
+            if subword == '':
+                flag = True
+                return flag
+            else:
+                for i in tobematched:
+                    # print('待判断矩阵元素坐标',tobematched,'当前矩阵坐标',i,'已走通路径',vistedlist,'待判断子串',subword)
+                    if board[i[0]][i[1]] == subword[0]:
+                        print('待判断矩阵元素坐标', tobematched, '当前矩阵坐标', i, '已走通路径', vistedlist,
+                              '待判断子串', subword)
+                        # 将匹配到的坐标放入路径
+                        vistedlist.append(i)
+                        # 把下一个待匹配的（当前元素上下左右）放入tmplist，进入下一轮匹配
+                        tmplist = []
+                        # 把矩阵当前元素上下左右4个元素加入下一轮判断队列，剔除已经访问过的
+                        for x,y in directions:
+                            if 0<=i[0]+x<len(board) and 0<=i[1]+y<len(board[0]) and [i[0]+x,i[1]+y] not in vistedlist:
+                                tmplist.append([i[0]+x,i[1]+y] )
+                        # 递归调用下一个待匹配元素和subword子串
+                        subsubword = subword[1:len(subword)]
+                        flag = recursion(tmplist, subsubword)
+                        print('flag',flag)
+                        if flag:
+                            return True
+                flag = False
+                return flag
+
+        for i in range(len(board)*len(board[0])):
+            tbm = [[i//len(board[0]), i%len(board[0])]]
+            vistedlist = []
+            word1 = word
+            flag = recursion(tbm,word1)
+            if flag:
+                break
+
+        print(flag)
+        return flag
+
+    """
+    80. 删除有序数组中的重复项 II：给你一个有序数组 nums ，请你 原地 删除重复出现的元素，使得出现次数超过两次的元素只出现两次 ，返回删除后数组的新长度。
+        不要使用额外的数组空间，你必须在 原地 修改输入数组 并在使用 O(1) 额外空间的条件下完成。
+        示例 1：输入：nums = [1,1,1,2,2,3]，输出：5, nums = [1,1,2,2,3]
+        标签：数组，双指针
+        https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/description/
+    """
+
+    def removeDuplicates_80(self, nums: List[int]) -> int:
+        # 思路：遍历数组，判断当前元素是否跟下面两个相同，是的话直接删
+        i = 0
+        while i < len(nums)-2:
+            if nums[i] == nums[i+1] == nums[i+2]:
+                nums.pop(i)
+            else:
+                i = i + 1
+        print(len(nums), nums)
+        return len(nums)
+
+    """
+    81. 搜索旋转排序数组 II：已知存在一个按非降序排列的整数数组 nums ，数组中的值不必互不相同。
+        在传递给函数之前，nums 在预先未知的某个下标 k（0 <= k < nums.length）上进行了 旋转 ，
+        使数组变为 [nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]（下标 从 0 开始 计数）。
+        例如， [0,1,2,4,4,4,5,6,6,7] 在下标 5 处经旋转后可能变为 [4,5,6,6,7,0,1,2,4,4] 。
+        给你 旋转后 的数组 nums 和一个整数 target ，请你编写一个函数来判断给定的目标值是否存在于数组中。
+        如果 nums 中存在这个目标值 target ，则返回 true ，否则返回 false 。你必须尽可能减少整个操作步骤。
+        标签：数组，二分查找
+        https://leetcode.cn/problems/search-in-rotated-sorted-array-ii/description/
+    """
+
+    def searchInRotatedSortedArray_81(self, nums: List[int], target: int) -> bool:
+        # 先定位数组在什么位置“断掉”的，然后分别对两条子序列做二分查找。
+        #
+        # if nums[0] == nums[len(nums)-1]:
+        #     if nums[0] == target:
+        #         print(True)
+        #         return True
+        #     else:
+        #         print(False)
+        #         return False
+        # 此题与33题相似，但本题中nums可能包含重复元素
+
+        # 如果不是极端情况，那必然存在中间一个“断掉”的位置，对于极端情况数组所有元素都一样，那idx必然等于len(nums)-1，也不影响后续判断
+        idx = 0
+        for i in range(len(nums)-1):
+            if nums[i] > nums[i+1]:
+                idx = i
+                break
+        print('idx',idx)
+
+        # 先定位target在哪一段
+        begin,end = 0,len(nums)-1
+        if nums[0] <= target <= nums[idx]:
+            begin, end = 0, idx
+        elif nums[idx+1] <= target <= nums[len(nums)-1]:
+            begin, end = idx+1, len(nums)-1
+        else:
+            print(False)
+            return False
+
+        # 进行二分法查找
+        while begin < end:
+            mid = (begin + end) // 2
+            print('begin,end,mid', begin, end, mid)
+            if nums[mid] == target or nums[begin] == target or nums[end] == target:
+                print(True)
+                return True
+            elif nums[mid] < target:
+                begin = mid
+            elif nums[mid] > target:
+                end = mid
+            # 当begin和end之间只差1时，也没必要循环了
+            if begin + 1 == end :
+                if (nums[begin] == target or nums[end] == target):
+                    print(True)
+                    return True
+                else:
+                    print(False)
+                    return False
+
+        print(False)
+        return False
+        # 这题官解也是搞笑，干脆就轮询一遍得了，并没有很精妙
+
+    """
+    82. 删除排序链表中的重复元素 II：给定一个已排序的链表的头 head ， 删除原始链表中所有重复数字的节点，只留下不同的数字 。返回 已排序的链表 。
+        示例 1：输入：head = [1,2,3,3,4,4,5]，输出：[1,2,5]
+        标签：链表，双指针
+        https://leetcode.cn/problems/remove-duplicates-from-sorted-list-ii/description/
+    """
+
+    def removeDuplicates_82(self, head: List[int]) -> list:
+        # 思路：轮询列表，每个循环中判断后面的元素是否连续相等，记录起止位置，删掉
+        i = 0
+        while i < len(head)-1:
+            end = i+1
+            while head[end] == head[i]:
+                end = end+1
+            print(i,end)
+            if i == end-1:
+                i = i + 1
+            else:
+                for j in range(i, end):
+                    head.pop(i)
+
+        print(head)
+        return head
+
+
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
     # ma.longestSubstrWithoutRepeatChars_3('abcabcdbb')
@@ -2225,4 +2390,8 @@ if __name__ == "__main__":
     # ma.searchA2dMatrix_74([[1,3,5,7],[10,11,16,20],[23,30,34,60]],3)
     # ma.sortColors_75([2,0,2,1,1,0])
     # ma.combinations_77(5,3)
-    ma.subsets_78([1,2,3,4])
+    # ma.subsets_78([1,2,3,4])
+    # ma.wordSearch_79([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"ABCB")
+    # ma.removeDuplicates_80([0,0,1,1,1,1,2,3,3])
+    # ma.searchInRotatedSortedArray_81([2,5,6,0,0,1,2],3)
+    ma.removeDuplicates_82([1,1,1,2,3])
