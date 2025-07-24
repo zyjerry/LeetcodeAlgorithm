@@ -7,6 +7,7 @@ import math
 import re
 from email.quoprimime import body_encode
 from idlelib.pyshell import restart_line
+from sys import orig_argv
 from typing import Tuple, List
 import operator
 
@@ -2324,6 +2325,165 @@ class MediumAlgorithm0_99:
         print(head)
         return head
 
+    """
+    86. 分隔链表：给你一个链表的头节点 head 和一个特定值 x ，请你对链表进行分隔，使得所有 小于 x 的节点都出现在 大于或等于 x 的节点之前。
+        你应当 保留 两个分区中每个节点的初始相对位置。
+        示例 1：输入：head = [1,4,3,2,5,2], x = 3，输出：[1,2,2,4,3,5]
+        标签：链表，双指针
+        https://leetcode.cn/problems/partition-list/description/
+    """
+
+    def partitionList_86(self, head: List, x:int) -> List:
+        # 思路：设立begin、end两个坐标指针，begin表示下个下雨x的插入位置，end遍历列表
+        begin, end = 0, 1
+        while end < len(head):
+            print('before:', begin, end, head)
+            # 兼容0坐标，当begin小于x的话，begin右移一位
+            if head[begin] < x:
+                begin += 1
+            # 当end小于x的话，把end位置的元素插到begin位置，原end位置的元素剔除，begin和end均右移一位
+            if head[end] < x:
+                head.insert(begin, head[end])
+                head.pop(end+1)
+                end += 1
+                begin += 1
+            # 其余情况（也就是当前end值大于x，不做调整）仅对end右移一位
+            else:
+                end += 1
+            print('after:', begin, end, head)
+
+        print(head)
+        return head
+
+    """
+    89. 格雷编码：n 位格雷码序列 是一个由 2**n 个整数组成的序列，其中：
+                每个整数都在范围 [0, 2n - 1] 内（含 0 和 2n - 1）；第一个整数是 0；一个整数在序列中出现 不超过一次；
+                每对 相邻 整数的二进制表示 恰好一位不同 ，且 第一个 和 最后一个 整数的二进制表示 恰好一位不同
+        给你一个整数 n ，返回任一有效的 n 位格雷码序列 。
+        示例 1：输入：n = 2，输出：[0,1,3,2]
+        标签：位运算，数学，回溯
+        https://leetcode.cn/problems/gray-code/description/
+    """
+
+    def grayCode_89(self, n: int) -> List[int]:
+        # 本来的思路是：初始化两个列表，一个是0-2**n-的所有数字，一个是最终列表，头尾2个元素，初始化固定为0和1，
+        #            其他的遍历初始列表，符合条件的就逐个往最终列表里插
+        # 实践证明这个思路是错的，当n>=5时，最终初始列表中总会剩余若干元素不符合条件插入最终列表
+        originallist = list(range(2,2**n))
+        resultlist = [0,1]
+        for i in range(len(originallist)):
+            for i in originallist:
+                # 把原始列表中某个元素和结果列表倒数第二个比较，如果符合条件，就把该元素插入结果列表倒数第二位，同时从原始列表中删除
+                x = i ^ (resultlist[-2])
+                # 两个二进制数恰好有一位不同，说明这两个数异或操作后，一定是个2的次方数，以此作为判断条件
+                if (x & (x-1)) == 0:
+                    resultlist.insert(-1, i)
+                    originallist.remove(i)
+
+        print('错误思路resultlist：',resultlist)
+        print('错误思路originallist：',originallist)
+        #return resultlist
+
+        # 正确思路：格雷编码生成是有明确方式和证明的。
+        # n+1位格雷码的集合 = n位格雷码集合(顺序)加前缀0 + n位格雷码集合(逆序)加前缀1
+        resultlist = [0]
+        for i in range(1, n + 1):
+            for j in range(len(resultlist) - 1, -1, -1):
+                # 1向左位移i-1位，再和resultlist[j]进行或操作，相当于加前缀1
+                resultlist.append(resultlist[j] | (1 << (i - 1)))
+            print(resultlist)
+        print('正确思路resultlist：',resultlist)
+        return resultlist
+
+    """
+    90. 子集 II：给你一个整数数组 nums ，其中可能包含重复元素，请你返回该数组所有可能的 子集（幂集）。
+                解集 不能 包含重复的子集。返回的解集中，子集可以按 任意顺序 排列。
+        示例 1：输入：nums = [1,2,2]，输出：[[],[1],[1,2],[1,2,2],[2],[2,2]]
+        标签：位运算，数组，回溯
+        https://leetcode.cn/problems/subsets-ii/description/
+    """
+
+    def susetsII_90(self, nums: List[int]) -> List[List[int]]:
+        # 思路：和78题有相似之处，只是78不包含重复元素，本题可以，这里用二进制的思路重写，加一个判断避免重复
+        # 假如nums的长度是n，所有可能的组合，相当于所有n位二进制数的组合
+        resultlist = []
+        # 对所有n位二进制数判断
+        for i in range(2 ** len(nums)):
+            tmplist = []
+            # 判断每一位是否应该纳入组合
+            for j in range(len(nums)):
+                if ((2 ** j) & i) >= 1:
+                    tmplist.append(nums[len(nums)-j-1])
+            if tmplist not in resultlist:
+                resultlist.append(tmplist)
+
+        print(resultlist)
+        return resultlist
+
+    """
+    91. 解码方法：一条包含字母 A-Z 的消息通过以下映射进行了 编码 ："1" -> 'A'
+                                                        "2" -> 'B'
+                                                        ...
+                                                        "25" -> 'Y'
+                                                        "26" -> 'Z'
+                然而，在 解码 已编码的消息时，你意识到有许多不同的方式来解码，因为有些编码被包含在其它编码当中（"2" 和 "5" 与 "25"）。
+                给你一个只含数字的 非空 字符串 s ，请计算并返回 解码 方法的 总数 。如果没有合法的方式解码整个字符串，返回 0。
+        示例 1：输入：s = "12"，输出：2，解释：它可以解码为 "AB"（1 2）或者 "L"（12）。
+        标签：字符串，动态规划
+        https://leetcode.cn/problems/decode-ways/description/
+    """
+
+    def decodeWays_91(self, nums: str) -> int:
+        # 思路：动态规划，先判断字符串头一位或者头两位，是否在1-25范围内，如是，方法数相当于后面的子串方法数，可以用递归实现
+        # 这个思路是对的，但是代码写得比较蠢，边界条件if else写得太多了，相对来说，官解更优雅写
+        def recursion(substr:str) ->int:
+            print(substr)
+            # 如果str是空的或者第一位为0，返回0
+            if substr == '' or substr[0] == '0':
+                return 0
+
+            # 如果str就剩1位了，返回1
+            if len(substr) == 1 :
+                return 1
+
+            # 如果str就剩2位了，看情况
+            if len(substr) == 2 :
+                # 情况1、如果该两位>26，那只能看后面情况
+                if int(substr[0:2]) > 26:
+                    return recursion(substr[1:])
+                # 情况2：如果该两位<27，那可以取第一位也可以取前两位，再看后面情况
+                elif int(substr[0:2]) < 27:
+                    return 1 + recursion(substr[1:])
+
+            # 如果str大于2位，看str前2位数的情况
+            if len(substr)>2:
+                # 情况1、如果前两位>26，那只能取第一位，再看后面情况
+                if int(substr[0:2]) > 26:
+                    return recursion(substr[1:])
+                # 情况2：如果前两位<27，那可以取第一位也可以取前两位，再看后面情况
+                elif int(substr[0:2])<27:
+                    return  recursion(substr[1:]) + recursion(substr[2:])
+
+        a = recursion(nums)
+        print(a)
+        # return a
+
+        # 官解是从前往后推，不像递归那么别扭：设 fi表示字符串 s 的前 i 个字符 s[1..i] 的解码方法数，那么有两种情况：
+        # 情况一、使用了一个字符，即 s[i] 进行解码，那么只要 s[i] !=0，它就可以被解码成 A∼I 中的某个字母，状态转移方程fi=f i−1
+        # 情况二、使用了两个字符，即 s[i−1] 和 s[i] 进行编码，s[i−1] 不能等于 0，并且 s[i−1] 和 s[i] 组成的整数必须小于等于 26，这样它们就可以被解码成 J∼Z 中的某个字母。
+        #        状态转移方程：fi=f i−2
+        # 需要注意的是，只有当 i>1 时才能进行转移，否则 s[i−1] 不存在，边界条件为：f0=1
+        n = len(nums)
+        f = [1] + [0] * n
+        for i in range(1, n + 1):
+            if nums[i - 1] != '0':
+                f[i] += f[i - 1]
+            if i > 1 and nums[i - 2] != '0' and int(nums[i-2:i]) <= 26:
+                f[i] += f[i - 2]
+        print(f)
+        return f[n]
+
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -2394,4 +2554,8 @@ if __name__ == "__main__":
     # ma.wordSearch_79([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"ABCB")
     # ma.removeDuplicates_80([0,0,1,1,1,1,2,3,3])
     # ma.searchInRotatedSortedArray_81([2,5,6,0,0,1,2],3)
-    ma.removeDuplicates_82([1,1,1,2,3])
+    # ma.removeDuplicates_82([1,1,1,2,3])
+    # ma.partitionList_86([2,1], 2)
+    # ma.grayCode_89(6)
+    # ma.susetsII_90([1,2,2])
+    ma.decodeWays_91("226")
