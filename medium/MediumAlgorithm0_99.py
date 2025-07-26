@@ -5,13 +5,47 @@
 """
 import math
 import re
-from email.quoprimime import body_encode
-from idlelib.pyshell import restart_line
-from sys import orig_argv
-from typing import Tuple, List
-import operator
+from typing import Tuple
 
+# 定义一个二叉树的结构，用户后续关于树的算法
+class BinaryTreeNode:
+    # 初始化节点结构
+    def __init__(self,v:int=0,l=None,r=None):
+        self.val = v
+        self.left = l
+        self.right = r
 
+    # 深度遍历该节点下的所有树结构，并返回一个元素列表
+    def depthFirsTraversal(self,l:list)->list[int]:
+        l.append(self.val)
+        if self.left == None :
+            if self.right != None:
+                l.append(None)
+        else:
+            self.left.depthFirsTraversal(l)
+        if self.right != None:
+            self.right.depthFirsTraversal(l)
+        return l
+
+    # 广度遍历该节点下的所有树结构，并返回一个元素列表
+    def breadthFirstTraversal(self)->list[int]:
+        queue = [self]
+        l=[]
+        while queue:
+            n = len(queue)
+            # print('n',n,'queue',queue)
+            for i in range(n):
+                q = queue.pop(0)
+                l.append(q.val if q else None)
+                if q:
+                    queue.append(q.left if q.left else None)
+                    queue.append(q.right if q.right else None)
+        # 把最终列表中末尾的None去掉
+        while l[-1] == None:
+            l.pop(-1)
+        return l
+
+# 主类，算法实现都在这里面
 class MediumAlgorithm0_99:
     """    构造函数，什么都不做    """
 
@@ -1661,7 +1695,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/merge-intervals/description/
     """
 
-    def mergeIntervals_56(self, intervals: List[List[int]]) -> List[List[int]]:
+    def mergeIntervals_56(self, intervals: list[list[int]]) -> list[list[int]]:
         # 思路：考虑到数据区间不总都是向上的，存在波动的情况，首先要对数组的0坐标值排序，确保排序后区间保持向上
         # 然后再从左向右逐步判断合并
         result = intervals
@@ -1692,7 +1726,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/insert-interval/description/
     """
 
-    def insertIntervals_57(self, intervals: List[List[int]], newInterval:list[int,int]) -> List[List[int]]:
+    def insertIntervals_57(self, intervals: list[list[int]], newInterval:list[int,int]) -> list[list[int]]:
         # 思路：从前到后对已有列表的每个元素和newInterval对比判断，有几种情况：
         # 情况1、newInterval完全在当前元素的左边不搭界，那么在已有列表左边插入newInterval
         # 情况2、newInterval和当前元素有重叠，那么修改当前元素，变成和newInterval的并集，此时后续工作是判断当前元素和下一元素是否右重叠，如有则合并，一直到最后
@@ -1733,7 +1767,7 @@ class MediumAlgorithm0_99:
         print(resultlist)
         return resultlist
 
-    def insertIntervals_57_standard(self, intervals: List[List[int]], newInterval: list[int, int]) -> List[List[int]]:
+    def insertIntervals_57_standard(self, intervals: list[list[int]], newInterval: list[int, int]) -> list[list[int]]:
         # 思路2：官网答案，比上面这个优雅一些。先遍历所有元素，找出和newInterval有重叠的，最后一起处理，删除合并元素，插入新区间
         resultlist = []
         left, right = newInterval
@@ -1804,7 +1838,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/rotate-list/description/
     """
 
-    def rotateList_61(self, head: List, k: int) -> List:
+    def rotateList_61(self, head: list, k: int) -> list:
         # 思路1：简单粗暴不值一提，新生成一个链表，把原链表内容按照位移的新位置赋值
         k = k % len(head)
         resultlist = [0]*len(head)
@@ -1930,7 +1964,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/unique-paths-ii/description/
     """
 
-    def uniquePathsII_63(self, obstacleGrid: List[List[int]]) -> int:
+    def uniquePathsII_63(self, obstacleGrid: list[list[int]]) -> int:
         # 思路1：参考上一题思路3，在循环中增加判断，当该元素为0时，递归函数返回0
         m,n = len(obstacleGrid),len(obstacleGrid[0])
         resultlist = [[1] * n] + [[1] + [0] * (n - 1) for _ in range(m - 1)]
@@ -1951,7 +1985,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/minimum-path-sum/description/
     """
 
-    def minimumPathSum_64(self, grid: List[List[int]]) -> int:
+    def minimumPathSum_64(self, grid: list[list[int]]) -> int:
         # 思路：动态规划，从左上到右下依次计算每个元素的数字和，计算完毕取最右下角元素数字即可
         # 由于每次只能向下或者向右，那么后续每个元素值只和左边和上面一行相关，所以可以精简数据结构，只保留上一行数列即可
         # 这个思路比官解简洁，参照62题官解方法一的最简形式
@@ -2022,7 +2056,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/set-matrix-zeroes/description/
     """
 
-    def setMatrixZeroes_73(self, matrix: List[List[int]]) -> None:
+    def setMatrixZeroes_73(self, matrix: list[list[int]]) -> None:
         # 思路：逻辑看上去简单，有个陷阱是怎样区分原始矩阵中的0和后来改的0，不能混淆，否则最后全矩阵都会变成0。
         # 另外主要是看怎么高效，但是我也没想好，先来一版简单粗暴的。
         # 先遍历矩阵元素，找到0所在的行和列，记在2个列表里，用set集合不重复，再根据set终记录的行列把矩阵对应元素改成0
@@ -2056,7 +2090,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/search-a-2d-matrix/description/
     """
 
-    def searchA2dMatrix_74(self,matrix: List[List[int]],target:int) -> bool:
+    def searchA2dMatrix_74(self,matrix: list[list[int]],target:int) -> bool:
         # 思路：既然matrix内容已经是排序了的，那就是个变相的二分查找啊
         rows, columns = len(matrix), len(matrix[0])
         # 把矩阵当成一维列表展开，记录头尾序号
@@ -2082,7 +2116,7 @@ class MediumAlgorithm0_99:
         标签：数组，双指针，排序
         https://leetcode.cn/problems/sort-colors/description/
     """
-    def sortColors_75(self, nums: List[int]) -> None:
+    def sortColors_75(self, nums: list[int]) -> None:
         # 思路：由于只有3种值，所以做个简单的排序：遍历每个列表元素，如果是0就抽出来插入第一位，如果是2就抽出来插入最末一位，遍历完即可
         # 过程中需要记录一下往后仍的次数，作为结束循环的判断
         i, count2 = 0,0
@@ -2146,7 +2180,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/subsets/description/
     """
 
-    def subsets_78(self, nums: List[int]) -> List[List[int]]:
+    def subsets_78(self, nums: list[int]) -> list[list[int]]:
         # 思路：和77题有相似之处，可以直接循环调，这里用二进制的思路重写
         # 假如nums的长度是n，所有可能的组合，相当于所有n位二进制数的组合
         resultlist = []
@@ -2169,7 +2203,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/word-search/description/
     """
 
-    def wordSearch_79(self, board: List[List[str]], word: str) -> bool:
+    def wordSearch_79(self, board: list[list[str]], word: str) -> bool:
         # 思路：2个指针，分别记录矩阵当前要匹配的元素和单词当前要匹配的字母；另设一个列表记录已匹配到的矩阵元素坐标防止重复使用
         # 从矩阵最左上角开始遍历，从word第一个字符开始逐个匹配，如果能匹配完到word最后一个字符则返回True
 
@@ -2178,7 +2212,7 @@ class MediumAlgorithm0_99:
         directions = [[-1,0],[0,1],[1,0],[0,-1]] # 上右下左的方向
 
         # tobematched:上个元素上下左右的待匹配坐标列表；subword：待匹配的子串
-        def recursion(tobematched: List[List[int]], subword: str) -> bool:
+        def recursion(tobematched: list[list[int]], subword: str) -> bool:
             print('递归函数入口：',tobematched,subword)
             if subword == '':
                 flag = True
@@ -2225,7 +2259,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/description/
     """
 
-    def removeDuplicates_80(self, nums: List[int]) -> int:
+    def removeDuplicates_80(self, nums: list[int]) -> int:
         # 思路：遍历数组，判断当前元素是否跟下面两个相同，是的话直接删
         i = 0
         while i < len(nums)-2:
@@ -2247,7 +2281,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/search-in-rotated-sorted-array-ii/description/
     """
 
-    def searchInRotatedSortedArray_81(self, nums: List[int], target: int) -> bool:
+    def searchInRotatedSortedArray_81(self, nums: list[int], target: int) -> bool:
         # 先定位数组在什么位置“断掉”的，然后分别对两条子序列做二分查找。
         #
         # if nums[0] == nums[len(nums)-1]:
@@ -2308,7 +2342,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/remove-duplicates-from-sorted-list-ii/description/
     """
 
-    def removeDuplicates_82(self, head: List[int]) -> list:
+    def removeDuplicates_82(self, head: list[int]) -> list:
         # 思路：轮询列表，每个循环中判断后面的元素是否连续相等，记录起止位置，删掉
         i = 0
         while i < len(head)-1:
@@ -2333,7 +2367,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/partition-list/description/
     """
 
-    def partitionList_86(self, head: List, x:int) -> List:
+    def partitionList_86(self, head: list, x:int) -> list:
         # 思路：设立begin、end两个坐标指针，begin表示下个下雨x的插入位置，end遍历列表
         begin, end = 0, 1
         while end < len(head):
@@ -2365,7 +2399,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/gray-code/description/
     """
 
-    def grayCode_89(self, n: int) -> List[int]:
+    def grayCode_89(self, n: int) -> list[int]:
         # 本来的思路是：初始化两个列表，一个是0-2**n-的所有数字，一个是最终列表，头尾2个元素，初始化固定为0和1，
         #            其他的遍历初始列表，符合条件的就逐个往最终列表里插
         # 实践证明这个思路是错的，当n>=5时，最终初始列表中总会剩余若干元素不符合条件插入最终列表
@@ -2403,7 +2437,7 @@ class MediumAlgorithm0_99:
         https://leetcode.cn/problems/subsets-ii/description/
     """
 
-    def susetsII_90(self, nums: List[int]) -> List[List[int]]:
+    def susetsII_90(self, nums: list[int]) -> list[list[int]]:
         # 思路：和78题有相似之处，只是78不包含重复元素，本题可以，这里用二进制的思路重写，加一个判断避免重复
         # 假如nums的长度是n，所有可能的组合，相当于所有n位二进制数的组合
         resultlist = []
@@ -2483,6 +2517,151 @@ class MediumAlgorithm0_99:
         print(f)
         return f[n]
 
+    """
+    92. 反转链表 II：给你单链表的头指针 head 和两个整数 left 和 right ，其中 left <= right 。请你反转从位置 left 到位置 right 的链表节点，返回 反转后的链表 。
+        示例 1：输入：head = [1,2,3,4,5], left = 2, right = 4，输出：[1,4,3,2,5]
+        标签：链表
+        https://leetcode.cn/problems/reverse-linked-list-ii/description/
+    """
+
+    def reverseLinkedListII_92(self, head: list, left:int, right:int) -> list:
+        # 思路：直接原地交换吧
+        while left < right:
+            tmp = head[left-1]
+            head[left-1] = head[right-1]
+            head[right-1] = tmp
+            left += 1
+            right -= 1
+        print(head)
+        return head
+
+        # 官解的要求是，链表的操作问题，一般而言不允许我们修改节点的值，而只能修改节点的指向操作。这样的话就会复杂一些，先不写了
+
+    """
+    93. 复原 IP 地址：有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 '.' 分隔。
+                    给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 '.' 来形成。
+                    你 不能 重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。
+        示例 1：输入：s = "25525511135"，输出：["255.255.11.135","255.255.111.35"]
+        标签：字符串，回溯
+        https://leetcode.cn/problems/restore-ip-addresses/description/
+    """
+
+    def restoreIpAddresses_93(self, s: str) -> list:
+        # 思路：有点像91题，用递归的方式穷尽所有可能的255以内数字的4个组合，应该算是深度遍历搜索
+        resultlist = []
+        # sub1是已经匹配模式的字符串，subs2是剩余待分割的字符串
+        def recursion(subs1:str, subs2:str):
+            print(subs1,subs2,resultlist)
+            # 如果待分割的字符串是空的说明匹配完毕，返回
+            if subs2=='' :
+                # 只有当已经匹配模式的字符串，格式符合要求（4段符合要求的数字）时，才认为是正确的IP地址，加入到结果列表中，需要做除重判断
+                if subs1.count('.')==4 and subs1[0:len(s)+3] not in resultlist:
+                    resultlist.append(subs1[0:len(s)+3])
+                return
+            # 如果待匹配字符串已经超出4个点了说明格式不对，也返回，这里节省不必要的深度递归递归
+            if subs1.count('.') > 4:
+                return
+
+            # substr的第一个字符无论如何都能符合条件，加入
+            recursion(subs1+subs2[0]+'.', subs2[1:])
+            # 如果substr的第一个字符不等于0 ，那么前两个也符合条件，加入
+            if subs2[0]!='0':
+                recursion(subs1+subs2[0:2]+'.', subs2[2:])
+                # 进而，如果substr的前3个字符<256，那么前三个也符合条件，加入
+                if int(subs2[0:3])<256:
+                    recursion(subs1+subs2[0:3]+'.', subs2[3:])
+
+        recursion('',s)
+
+        print(len(resultlist),resultlist)
+        return resultlist
+
+    """
+    95. 不同的二叉搜索树 II：给你一个整数 n ，请你生成并返回所有由 n 个节点组成且节点值从 1 到 n 互不相同的不同 二叉搜索树 。可以按 任意顺序 返回答案。
+        示例 1：输入：n = 3，输出：[[1,null,2,null,3],[1,null,3,2],[2,1,3],[3,1,null,null,2],[3,2,null,1]]
+        标签：树，二叉搜索树，动态规划，回溯，二叉树
+        https://leetcode.cn/problems/unique-binary-search-trees-ii/description/
+    """
+
+    def uniqueBinarySearchTreeII_95(self, nums: int) -> list:
+        # 二叉搜索树的定义是：左子树的所有节点值均小于根节点的值，右子树的所有节点值均大于根节点的值，左右子树也分别为二叉搜索树。
+        # 思路：跟93题差不多，设计一个递归函数，参数是当前已安置节点和待安置的数字队列，把待安置数字队列里的元素分成大于当前节点和小于当前节点两部分，再递归执行左右两部分，直到待安置的数字队列为空
+        # 上述思路尝试半天还是写不出来，以下代码作废。
+        resultlist = []
+        originlist = list(range(1,nums+1))
+
+        # def recursion(processedlist:list[int], remainedlist:list[int], count:int) -> None:
+        #     print('processedlist', processedlist, 'remainedlist', remainedlist, 'count', count)
+        #
+        #     # 当计数器count为0表示整个二叉搜索树都构建完毕，加入resultlist，返回
+        #     if count == 0:
+        #         resultlist.append(processedlist.copy())
+        #         return
+        #     # 当待安置数字队列都没了时，结束递归，返回，但这个时候不一定是整个二叉搜索树都构建完毕，所以不必加入resultlist
+        #     if remainedlist==[] :
+        #         return
+        #
+        #     # 把remainedlist切分成左子树和右子树
+        #     i = 0
+        #     while i < len(remainedlist):
+        #         if remainedlist[i] < processedlist[-1]:
+        #             i = i + 1
+        #     leftlist,rightlist = remainedlist[0:i], remainedlist[i:len(remainedlist)]
+        #     # 如果左子树为空但右子树还有内容，需要补个0
+        #     if leftlist==[] and rightlist!=[]:
+        #         processedlist.append(0)
+        #     # 如果左子树还有内容，则优先遍历左子树
+        #     if leftlist != [] :
+        #         for i in leftlist:
+        #             ll = leftlist.copy()
+        #             ll.remove(i)
+        #             pp = processedlist.copy()
+        #             pp.append(i)
+        #             print('  pp,ll', pp,ll)
+        #             recursion(pp, ll,count-1)
+        #     # 如果右子树还有内容，则优先遍历左子树
+        #     if rightlist != []:
+        #         for i in rightlist:
+        #             rr = rightlist.copy()
+        #             rr.remove(i)
+        #             pp = processedlist.copy()
+        #             pp.append(i)
+        #             print('  pp,rr', pp, rr)
+        #             recursion(pp, rr,count-1)
+        #
+        # recursion([], originlist, [])
+        #
+        # print(len(resultlist),resultlist)
+        # return resultlist
+
+
+        # 参考官网解答，发现树状的数据结构和算法，还是构造一个树节点TreeNode存储左右子树比较方便清楚
+        def generateTrees(start, end):
+            if start > end:
+                return [None, ]
+
+            allTrees = []
+            for i in range(start, end + 1):  # 枚举可行根节点
+                # 获得所有可行的左子树集合
+                leftTrees = generateTrees(start, i - 1)
+
+                # 获得所有可行的右子树集合
+                rightTrees = generateTrees(i + 1, end)
+
+                # 从左子树集合中选出一棵左子树，从右子树集合中选出一棵右子树，拼接到根节点上
+                for l in leftTrees:
+                    for r in rightTrees:
+                        currTree = BinaryTreeNode(i,l,r)
+                        allTrees.append(currTree)
+
+            return allTrees
+
+        resultlist = generateTrees(1, nums) if nums else []
+        endlist = []
+        for i in resultlist:
+            endlist.append(i.breadthFirstTraversal())
+        print(endlist)
+        return endlist
 
 
 if __name__ == "__main__":
@@ -2558,4 +2737,7 @@ if __name__ == "__main__":
     # ma.partitionList_86([2,1], 2)
     # ma.grayCode_89(6)
     # ma.susetsII_90([1,2,2])
-    ma.decodeWays_91("226")
+    # ma.decodeWays_91("226")
+    # ma.reverseLinkedListII_92( [5],1, 1)
+    # ma.restoreIpAddresses_93('25525511135')
+    ma.uniqueBinarySearchTreeII_95(3)
