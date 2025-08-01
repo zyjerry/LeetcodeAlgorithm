@@ -9,23 +9,73 @@ from typing import Tuple
 
 # 定义一个二叉树的结构，用户后续关于树的算法
 class BinaryTreeNode:
+
     # 初始化节点结构
     def __init__(self,v:int=0,l=None,r=None):
-        self.val = v
-        self.left = l
-        self.right = r
+        self.val = v         # 节点本身的值
+        self.left = l        # 节点左子树节点的指针
+        self.right = r       # 节点右子树节点的指针
 
-    # 深度遍历该节点下的所有树结构，并返回一个元素列表
-    def depthFirsTraversal(self,l:list)->list[int]:
+    # 前序深度遍历该节点下的所有树结构，并返回一个所有元素的val列表。根-左-右
+    def DLRTraversal(self,l:list)->list[int]:
         l.append(self.val)
+        # 叶子节点，minvalue和maxvalue都是自己
         if self.left == None :
             if self.right != None:
                 l.append(None)
         else:
-            self.left.depthFirsTraversal(l)
+            self.left.DLRTraversal(l)
+
         if self.right != None:
-            self.right.depthFirsTraversal(l)
+            self.right.DLRTraversal(l)
+
         return l
+
+    # 中序深度遍历该节点下的所有树结构，并返回一个所有元素的val列表。左-根-右
+    def LDRTraversal(self,l:list)->list[int]:
+        if self.left == None:
+            l.append(self.val)
+        else:
+            self.left.LDRTraversal(l)
+            l.append(self.val)
+        if self.right != None:
+            self.right.LDRTraversal(l)
+
+        return l
+
+    # 后序深度遍历该节点下的所有树结构，并返回一个所有元素的val列表。左-右-根
+    def LRDTraversal(self,l:list)->list[int]:
+        if self.left != None:
+            self.left.LRDTraversal(l)
+        if self.right != None:
+            self.right.LRDTraversal(l)
+        l.append(self.val)
+
+        return l
+
+    # 后序深度遍历该节点下的所有树结构，并计算每个节点下左子树的最大最小值、右子树的最大最小值。返回False就是False，返回None表示True
+    def validateBinarySearchTree(self)->bool:
+        if self.left == None and self.right == None:
+            self.leftmin = self.val
+            self.leftmax = self.val
+            self.rightmin = self.val
+            self.rightmax = self.val
+
+        if self.left != None:
+            self.left.validateBinarySearchTree()
+        if self.right != None:
+            self.right.validateBinarySearchTree()
+
+        if self.left != None:
+            self.leftmin = min(self.left.leftmin, self.left.leftmax, self.left.rightmin, self.left.rightmax, self.left.val)
+            self.leftmax = min(self.left.leftmin, self.left.leftmax, self.left.rightmin, self.left.rightmax, self.left.val)
+        if self.right != None:
+            self.rightmin = min(self.right.leftmin, self.right.leftmax, self.right.rightmin, self.right.rightmax, self.right.val)
+            self.rightmax = min(self.right.leftmin, self.right.leftmax, self.right.rightmin, self.right.rightmax, self.right.val)
+
+        if not self.leftmax < self.val < self.rightmin:
+            return False
+
 
     # 广度遍历该节点下的所有树结构，并返回一个元素列表
     def breadthFirstTraversal(self)->list[int]:
@@ -2663,6 +2713,139 @@ class MediumAlgorithm0_99:
         print(endlist)
         return endlist
 
+    """
+    96. 不同的二叉搜索树：给你一个整数 n ，求恰由 n 个节点组成且节点值从 1 到 n 互不相同的 二叉搜索树 有多少种？返回满足题意的二叉搜索树的种数。
+        示例 1：输入：n = 3，输出：5
+        标签：树，二叉搜索树，数学，动态规划，二叉树
+        https://leetcode.cn/problems/unique-binary-search-trees/description/
+    """
+
+    def uniqueBinarySearchTree_96(self, nums: int) -> int:
+        # 思路：这题比95就简单多了，只需要返回数量，不需要返回每个树长啥样。可以这么理解：如果确定了根节点，那么它的可能树种类是左子树种类*右子树种类。
+        # 设计一个递归函数，参数是表示待排列的元素个数，对每个元素遍历，递归调用左子树和右子树相乘，再累计
+        def recursion(n: int) -> int:
+            if n == 0 or n == 1 :
+                return 1
+            else:
+                totalMethods = 0
+                for i in range(n):
+                    leftmethods = recursion(i)
+                    rightmethods = recursion(n-i-1)
+                    totalMethods += leftmethods * rightmethods
+                return totalMethods
+
+        t = recursion(nums)
+        print(t)
+        return t
+
+    # 官网解答是根据组合数学原理介绍了卡特兰数，直接用了二重循环，思路差不多，这里不再写了
+
+    """
+    97. 交错字符串：给定三个字符串 s1、s2、s3，请你帮忙验证 s3 是否是由 s1 和 s2 交错 组成的。
+        示例 1：输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"，输出：true
+        示例 2：输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbbaccc"，输出：false
+        标签：字符串，动态规划
+        https://leetcode.cn/problems/interleaving-string/description/
+    """
+
+    def interleavingString_97(self, s1:str, s2:str, s3:str) -> bool :
+        # 思路：动态规划，从左向右找3个字符串的匹配模式，如果能匹配到，则继续下一段的判断，直至3个字符串任一结束
+        # 设置3组坐标指针，分别记录3个字符串正在判断的子串的起始位置，初始化0,0
+        idxlist = [[0,0,len(s1)],[0,0,len(s2)],[0,0,len(s3)]]
+        strlist = [s1,s2,s3]
+        # 标记每轮循环判断是s1还是s2，0表示s1，1表示s2
+        side = 0
+        # 标记连续匹配不上的次数，等于2说明s1和s2都匹配不上，就返回False
+        count = 0
+        while idxlist[0][1]<=idxlist[0][2] or idxlist[1][1]<=idxlist[1][2] or idxlist[2][1]<=idxlist[2][2]:
+            # 判断最大能匹配的子串
+            i = 1
+            while s3[idxlist[2][0]:idxlist[2][0]+i] == strlist[side][idxlist[side][0]:idxlist[side][0]+i] \
+                    and i <= idxlist[2][2] - idxlist[2][1]:
+                print(i,side,s3[idxlist[2][0]:idxlist[2][0]+i],strlist[side][idxlist[side][0]:idxlist[side][0]+i],idxlist)
+                i = i + 1
+            # 如果当前不匹配，换一个字符串匹配，进入下个循环
+            if i == 1 :
+                # 还有种情况时匹配到了最后时成功的
+                if idxlist[0][1]>=idxlist[0][2] and idxlist[1][1]>=idxlist[1][2] and idxlist[2][1]>=idxlist[2][2]:
+                    print(idxlist)
+                    return True
+                else:
+                    side = (side + 1) % 2
+                    count = count + 1
+                    # 如果已经2轮都不匹配的话，就说明匹配不上了，返回False
+                    if count>1:
+                        return False
+            # 如果当前匹配，idxlist更新一遍，下个循环换一个字符串匹配
+            else:
+                # 计数器清零
+                count = 0
+                idxlist[side][1] = idxlist[side][0] + i - 1
+                idxlist[side][0] = idxlist[side][0] + i - 1
+                idxlist[2][1] = idxlist[2][0] + i - 1
+                idxlist[2][0] = idxlist[2][0] + i - 1
+                side = (side + 1) % 2
+
+        # 上述思路按照官解的说法不算动态规划，而是双指针法。官解的思路比较复杂，暂时不想了，费脑子。
+
+    """
+    98. 验证二叉搜索树：给你一个二叉树的根节点 root ，判断其是否是一个有效的二叉搜索树。有效 二叉搜索树定义如下：
+                     节点的左子树只包含 严格小于 当前节点的数。
+                     节点的右子树只包含 严格大于 当前节点的数。
+                     所有左子树和右子树自身必须也是二叉搜索树。
+        示例 1：输入：root = [2,1,3]，输出：true
+        示例 2：输入：root = [5,1,4,null,null,3,6]，输出：false，解释：根节点的值是 5 ，但是右子节点的值是 4 。
+        标签：树，深度优先搜索，二叉搜索树，二叉树
+        https://leetcode.cn/problems/validate-binary-search-tree/description/
+    """
+
+    def validateBinarySearchTree_98(self, root: list) -> bool:
+        # 先把list格式改成二叉树BinaryTreeNode的格式，初始化该数据结构
+        rootbtn = BinaryTreeNode(root[0], None, None)
+        poplist = [rootbtn]
+        i = 1
+        while poplist != [] or i < len(root):
+            currentrootbtn = poplist[0]
+            if i < len(root) and root[i] != None:
+                leftbtn = BinaryTreeNode(root[i],None,None)
+            else:
+                leftbtn = None
+            currentrootbtn.left=leftbtn
+            i = i + 1
+
+            if i < len(root) and root[i] != None:
+                rightbtn = BinaryTreeNode(root[i],None,None)
+            else:
+                rightbtn = None
+            currentrootbtn.right = rightbtn
+            i = i + 1
+
+            if leftbtn != None:
+                poplist.append(leftbtn)
+            if rightbtn != None:
+                poplist.append(rightbtn)
+
+            poplist.pop(0)
+
+        # 思路1：深度遍历每个节点，每个节点都需要判断：
+        # 左子树的所有节点值都比该节点值小，右子树的所有节点值都比该节点值大
+        # 改进BinaryTreeNode的内容，增加4个成员变量：leftmin\leftmax\rightmin\rightmax，分别表示节点下左子树的最大最小值、右子树的最大最小值
+        # BinaryTreeNode类增加函数validateBinarySearchTree，遍历所有节点，计算上述4个值，并判断
+        flag = rootbtn.validateBinarySearchTree()
+        if flag == None:
+            flag = True
+        # return flag
+
+        # 思路2：参照官解，如果中序遍历后形成的数组是升序的，说明是有效的二叉搜索树。
+        # 当然，在中序遍历的过程中发现顺序不对就可以返回退出，能提高计算效率，
+        # 这里不干预修改BinaryTreeNode类LDRTraversal方法了，整个序列拿回来再循环一遍判断
+        l2 = rootbtn.LDRTraversal([])
+        print(l2)
+        for i in range(len(l2)-1):
+            if l2[i] > l2[i+1]:
+                return False
+        return True
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -2740,4 +2923,9 @@ if __name__ == "__main__":
     # ma.decodeWays_91("226")
     # ma.reverseLinkedListII_92( [5],1, 1)
     # ma.restoreIpAddresses_93('25525511135')
-    ma.uniqueBinarySearchTreeII_95(3)
+    # ma.uniqueBinarySearchTreeII_95(3)
+    # ma.uniqueBinarySearchTree_96(8)
+    # print(ma.interleavingString_97("aabcc",  "dbbca",  "aadbbcbcac"))
+    # print(ma.interleavingString_97( "aabcc", "dbbca", "aadbbbaccc"))
+    print(ma.validateBinarySearchTree_98([5,1,4,None,None,3,6]))
+    print(ma.validateBinarySearchTree_98([2,1,3]))
