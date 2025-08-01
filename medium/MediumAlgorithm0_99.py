@@ -5,6 +5,7 @@
 """
 import math
 import re
+from sys import flags
 from typing import Tuple
 
 # 定义一个二叉树的结构，用户后续关于树的算法
@@ -2834,9 +2835,9 @@ class MediumAlgorithm0_99:
         flag = rootbtn.validateBinarySearchTree()
         if flag == None:
             flag = True
-        # return flag
+        return flag
 
-        # 思路2：参照官解，如果中序遍历后形成的数组是升序的，说明是有效的二叉搜索树。
+        # 思路2：参照官解方法二，如果中序遍历后形成的数组是升序的，说明是有效的二叉搜索树。
         # 当然，在中序遍历的过程中发现顺序不对就可以返回退出，能提高计算效率，
         # 这里不干预修改BinaryTreeNode类LDRTraversal方法了，整个序列拿回来再循环一遍判断
         l2 = rootbtn.LDRTraversal([])
@@ -2845,6 +2846,28 @@ class MediumAlgorithm0_99:
             if l2[i] > l2[i+1]:
                 return False
         return True
+
+        # 思路3：参照官解方法一，设计一个递归函数 helper(root, lower, upper) 来递归判断，
+        # 函数表示考虑以 root 为根的子树，判断子树中所有节点的值是否都在 (l,r) 的范围内（注意是开区间）。
+        # 如果 root 节点的值 val 不在 (l,r) 的范围内说明不满足条件直接返回，否则我们要继续递归调用检查它的左右子树是否满足，如果都满足才说明这是一棵二叉搜索树。
+        # 这个方法一开始不太好理解，也是想了蛮久
+        def isValidBST(node: BinaryTreeNode,lower = float('-inf'), upper = float('inf') ) -> bool:
+            if not node:
+                return True
+
+            val = node.val
+            if val <= lower or val >= upper:
+                return False
+
+            if not isValidBST(node.left, lower, val):
+                return False
+            if not isValidBST(node.right, val, upper):
+                return False
+            return True
+
+        flag = isValidBST(rootbtn,float('-inf'),float('inf'))
+        print(flag)
+        return flag
 
 
 if __name__ == "__main__":
