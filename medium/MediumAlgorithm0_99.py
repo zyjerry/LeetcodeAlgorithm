@@ -16,6 +16,10 @@ class BinaryTreeNode:
         self.val = v         # 节点本身的值
         self.left = l        # 节点左子树节点的指针
         self.right = r       # 节点右子树节点的指针
+        self.leftmin = v
+        self.leftmax = v
+        self.rightmin = v
+        self.rightmax = v
 
     # 前序深度遍历该节点下的所有树结构，并返回一个所有元素的val列表。根-左-右
     def DLRTraversal(self,l:list)->list[int]:
@@ -54,8 +58,9 @@ class BinaryTreeNode:
 
         return l
 
-    # 后序深度遍历该节点下的所有树结构，并计算每个节点下左子树的最大最小值、右子树的最大最小值。返回False就是False，返回None表示True
-    def validateBinarySearchTree(self)->bool:
+    # 后序深度遍历该节点下的所有树结构，并计算每个节点下左子树的最大最小值、右子树的最大最小值。
+    # 返回False就是False，返回None表示True，另返回当前存在偏差的节点和
+    def validateBinarySearchTree(self):
         if self.left == None and self.right == None:
             self.leftmin = self.val
             self.leftmax = self.val
@@ -69,13 +74,13 @@ class BinaryTreeNode:
 
         if self.left != None:
             self.leftmin = min(self.left.leftmin, self.left.leftmax, self.left.rightmin, self.left.rightmax, self.left.val)
-            self.leftmax = min(self.left.leftmin, self.left.leftmax, self.left.rightmin, self.left.rightmax, self.left.val)
+            self.leftmax = max(self.left.leftmin, self.left.leftmax, self.left.rightmin, self.left.rightmax, self.left.val)
         if self.right != None:
             self.rightmin = min(self.right.leftmin, self.right.leftmax, self.right.rightmin, self.right.rightmax, self.right.val)
-            self.rightmax = min(self.right.leftmin, self.right.leftmax, self.right.rightmin, self.right.rightmax, self.right.val)
+            self.rightmax = max(self.right.leftmin, self.right.leftmax, self.right.rightmin, self.right.rightmax, self.right.val)
 
         if not self.leftmax < self.val < self.rightmin:
-            return False
+            return False,self
 
 
     # 广度遍历该节点下的所有树结构，并返回一个元素列表
@@ -2869,6 +2874,86 @@ class MediumAlgorithm0_99:
         print(flag)
         return flag
 
+    """
+    99. 恢复二叉搜索树：给你二叉搜索树的根节点 root ，该树中的 恰好 两个节点的值被错误地交换。请在不改变其结构的情况下，恢复这棵树 。
+        示例 1：输入：root = [1,3,null,null,2]，输出：[3,1,null,null,2]，解释：3 不能是 1 的左孩子，因为 3 > 1 。交换 1 和 3 使二叉搜索树有效。
+        标签：树，深度优先搜索，二叉搜索树，二叉树
+        https://leetcode.cn/problems/recover-binary-search-tree/description/
+    """
+
+    def recoverBinarySearchTree_99(self, root: list) -> list:
+        # 思路：遍历每个节点，必然存在：该节点左子树的最大值>节点值，或者该节点右子树的最小值<节点值。找出这2个节点，交换
+        # 先把list格式改成二叉树BinaryTreeNode的格式，初始化该数据结构
+        rootbtn = BinaryTreeNode(root[0], None, None)
+        poplist = [rootbtn]
+        i = 1
+        while poplist != [] or i < len(root):
+            currentrootbtn = poplist[0]
+            if i < len(root) and root[i] != None:
+                leftbtn = BinaryTreeNode(root[i],None,None)
+            else:
+                leftbtn = None
+            currentrootbtn.left=leftbtn
+            i = i + 1
+
+            if i < len(root) and root[i] != None:
+                rightbtn = BinaryTreeNode(root[i],None,None)
+            else:
+                rightbtn = None
+            currentrootbtn.right = rightbtn
+            i = i + 1
+
+            if leftbtn != None:
+                poplist.append(leftbtn)
+            if rightbtn != None:
+                poplist.append(rightbtn)
+
+            poplist.pop(0)
+
+        # 调用BinaryTreeNode.validateBinarySearchTree，计算每个节点是否符合二叉搜索树
+        rootbtn.validateBinarySearchTree()
+
+        # 调用广度遍历搜索，碰到的第一个左子树的最大值>节点值，或者该节点右子树的最小值<节点值，即是需要调换的节点
+        def breadthFirstTraversal(node:BinaryTreeNode) -> BinaryTreeNode:
+            queue = [node]
+            while queue:
+                n = len(queue)
+                for i in range(n):
+                    q = queue.pop(0)
+                    if q.val < q.leftmax or q.val > q.rightmin:
+                        return q
+                    if q:
+                        queue.append(q.left if q.left else None)
+                        queue.append(q.right if q.right else None)
+            return node
+
+        newnode = breadthFirstTraversal(rootbtn)
+        print(newnode.val, newnode.leftmin, newnode.leftmax,newnode.rightmin, newnode.rightmax)
+        val1 = 0
+        if newnode.val < newnode.leftmax:
+            val1 = newnode.leftmax
+        else:
+            val1 = newnode.rightmin
+
+        a,b = 0,0
+        for i in range(len(root)):
+            if root[i] == newnode.val:
+                a = i
+            if root[i] == val1:
+                b = i
+                break
+        print(a,b)
+        tmp = root[a]
+        root[a] = root[b]
+        root[b] = tmp
+
+        print(root)
+        return root
+
+        # 以上经过了n轮递归和循环，肯定不是最优解。
+        # 看了下官解，是将二叉树先中序遍历一遍得到结果list，然后判断哪2个位置的数字和相邻的不满足大小关系即可，好像也不很简洁
+        # 就不写了
+
 
 if __name__ == "__main__":
     ma = MediumAlgorithm0_99()
@@ -2950,5 +3035,6 @@ if __name__ == "__main__":
     # ma.uniqueBinarySearchTree_96(8)
     # print(ma.interleavingString_97("aabcc",  "dbbca",  "aadbbcbcac"))
     # print(ma.interleavingString_97( "aabcc", "dbbca", "aadbbbaccc"))
-    print(ma.validateBinarySearchTree_98([5,1,4,None,None,3,6]))
-    print(ma.validateBinarySearchTree_98([2,1,3]))
+    # print(ma.validateBinarySearchTree_98([5,1,4,None,None,3,6]))
+    # print(ma.validateBinarySearchTree_98([2,1,3]))
+    ma.recoverBinarySearchTree_99([3,1,4,None,None,2])
