@@ -3,8 +3,6 @@
     DATE        AUTHOR        CONTENTS
     2025-08-03  Jerry Chang   Create
 """
-from idlelib.debugger_r import restart_subprocess_debugger
-
 
 # 主类，算法实现都在这里面
 class HardAlgorithm0_199:
@@ -263,22 +261,161 @@ class HardAlgorithm0_199:
                 else:
                     break
         print(resultlist)
+        # return resultlist
+
+        # 上述思路是比较中规中矩刻板的，我忘了一个条件是 words 中所有字符串 长度相同，所以性能上肯定不是最优，但通用性好。
+        # 官解是这样的：既然words中所有字符串长度相同，那么对s做滑动窗口判断，一直滑到最后。感觉性能上也不是很优
+        idx = 0
+        wordlen = len(words[0])
+        wordscount = len(words)
+        resultlist = []
+        # 以idx为起始，每个循环判断后面wordlen*wordscount个字符是否符合条件，
+        # 如果符合，把idx插入结果；如果不符合，idx向右滑动一位，继续下一轮判断
+        while idx < len(s)-wordlen*wordscount:
+            tmplist = words.copy()
+            for i in range(wordscount):
+                # print(idx,i,s[idx+i*wordlen:idx+i*wordlen+wordlen],tmplist)
+                if s[idx+i*wordlen:idx+i*wordlen+wordlen] in tmplist:
+                    tmplist.pop( tmplist.index(s[idx+i*wordlen:idx+i*wordlen+wordlen]))
+                else:
+                    break
+            if tmplist == []:
+                resultlist.append(idx)
+            idx += 1
+        print(resultlist)
         return resultlist
 
+    """
+    32. 最长有效括号：给你一个只包含 '(' 和 ')' 的字符串，找出最长有效（格式正确且连续）括号子串的长度。
+        示例 1：输入：s = "(()"，输出：2，解释：最长有效括号子串是 "()"
+        示例 2：输入：s = ")()())"，输出：4，解释：最长有效括号子串是 "()()"
+        标签：栈，字符串，动态规划
+        https://leetcode.cn/problems/longest-valid-parentheses/description/
+    """
 
+    def longestValidParenthesis_32(self,s:str) -> int:
+        # 思路：设置一个空字符串，一个指针读取s，从0开始，
+        # 如果是左括号，压入栈中；如果是右括号，和栈中的最右字符比较，如果能形成()，则从栈中pop，结果数量加2，继续判断，直至读完s
+        tmps = '.'
+        idx = 0
+        result = 0
+        while idx < len(s):
+            # print(tmps,len(tmps))
+            if s[idx] == '(':
+                tmps += s[idx]
+            elif s[idx] == ')' and tmps[len(tmps)-1] == '(':
+                tmps = tmps[0:len(tmps)-1]
+                result += 2
+            elif s[idx] == ')' and tmps[len(tmps)-1] != '(':
+                tmps += s[idx]
+            idx += 1
+        print(result)
+        return result
 
+        # 官解反而没太看明白，似乎性能也不是很突出，暂时不做了
 
+    """
+    37. 解数独：编写一个程序，通过填充空格来解决数独问题。
+        示例 1：输入：board = [ ["5","3",".",".","7",".",".",".","."],["6",".",".","1","9","5",".",".","."],[".","9","8",".",".",".",".","6","."],
+                             ["8",".",".",".","6",".",".",".","3"],["4",".",".","8",".","3",".",".","1"],["7",".",".",".","2",".",".",".","6"],
+                             [".","6",".",".",".",".","2","8","."],[".",".",".","4","1","9",".",".","5"],[".",".",".",".","8",".",".","7","9"]]
+               输出：[["5","3","4","6","7","8","9","1","2"],["6","7","2","1","9","5","3","4","8"],["1","9","8","3","4","2","5","6","7"],
+                     ["8","5","9","7","6","1","4","2","3"],["4","2","6","8","5","3","7","9","1"],["7","1","3","9","2","4","8","5","6"],
+                     ["9","6","1","5","3","7","2","8","4"],["2","8","7","4","1","9","6","3","5"],["3","4","5","2","8","6","1","7","9"]]
+        标签：数组，哈希表，回溯，矩阵
+        https://leetcode.cn/problems/sudoku-solver/description/
+    """
 
+    def sudokuSolver_37(self, board: list[list[int]]) -> list[list[int]]:
+        # 思路：按照游戏规则，把每个空白格子中，可能的数字都列出来。最终总会有至少一个格子，其可能的值只有1个，该格子值确定后，将该值在其他格子可能的备选中删除。
+        # 依次循环迭代，直到每个格子的值都有唯一答案。
 
+        # 设计两个dict类型的数据。
+        # dict1存储需要填充格子的hashmap，key值是空格序号，value值是不定长的list，记录备选的数字，初始化为[]
+        # dict2存储需要填充格子的hashmap，key值是空格序号，value值int，记录该坐标归属的小九宫格最左上角的坐标
+        dict1, dict2 = {},{}
+        for i in range(len(board)):
+            for j in range(len(board[0])):
+                if board[i][j] == None:
+                    l = i*9+j
+                    dict1[l] = []
+                    dict2[l] = (i-i%3)*9 + (j-j%3)
+        print('空格序号：',dict1)
+        print('空格所在小九宫格左上角的序号：',dict2)
 
+        # 对每个空白格子，判断可以填的数字
+        for key in dict1.keys():
+            tmplist = [1,2,3,4,5,6,7,8,9]
+            # 排除所在行不可填的数字
+            i = key//9
+            for j in range(9):
+                if board[i][j] != None and board[i][j] in tmplist:
+                    tmplist.remove(board[i][j])
+            # 排除所在列不可填的数字
+            n = key%9
+            for m in range(9):
+                if board[m][n] != None and board[m][n] in tmplist:
+                    tmplist.remove(board[m][n])
+            # 排除所在九宫格不可填的数字
+            beginkey = dict2[key]
+            for x in range(3):
+                for y in range(3):
+                    if board[beginkey//9+x][beginkey%9+y] != None and board[beginkey//9+x][beginkey%9+y] in tmplist:
+                        tmplist.remove(board[beginkey//9+x][beginkey%9+y])
+            dict1[key] = tmplist
+
+        # 此时每个空格备选可以填的数字都以已算出，
+        print('空格可选的数字：',dict1)
+
+        # 现在需要先找出有唯一解的，把该解从其他备选清单中去掉，循环迭代，直到每个空格有唯一的解
+        # 循环判断直到dict1中没有待判断的元素
+        while len(dict1) > 0:
+            keylist = list(dict1.keys())
+            for key1 in keylist:
+                # 如果该座标的候选只有一个，就说明是唯一的
+                if len(dict1[key1]) == 1:
+                    # 填入原始列表
+                    board[key1//9][key1%9] = dict1[key1][0]
+                    # 该行的所有备选列表中删除该元素
+                    # print('dict1[key1][0]',dict1[key1][0])
+                    for i in range(9):
+                        if (key1 - key1 % 9 + i != key1) and ((key1 -key1%9 + i) in dict1.keys()) \
+                                and (dict1[key1][0] in dict1[key1 -key1%9 + i]):
+                            dict1[key1 - key1 % 9 + i].remove(dict1[key1][0])
+                    # 该列的所有备选列表中删除该元素
+                    for j in range(9):
+                        if (j*9 + key1 % 9 != key1) and (j*9 + key1 % 9 in dict1.keys()) \
+                                and (dict1[key1][0] in dict1[j*9 + key1 % 9]):
+                            dict1[j*9 + key1 % 9].remove(dict1[key1][0])
+                    # 该小九宫格的所有备选列表中删除该元素
+                    for i in range(3):
+                        for j in range(3):
+                            if (dict2[key1] + i*9 + j != key1) and (dict2[key1] + i*9 + j in dict1.keys()) \
+                                    and (dict1[key1][0] in dict1[dict2[key1] + i*9 + j]):
+                                dict1[dict2[key1] + i * 9 + j].remove(dict1[key1][0])
+                    # dict1中删除该元素
+                    dict1.pop(key1)
+        print('结果：', board)
+        return board
+
+        # 官解方法一、方法二用递归回溯的方式，硬尝试每个可能的数字组合，感觉性能也不一定好，只是代码量简洁些
+        # 官解方法三枚举优化，有点类似于我的方法，只是还是用递归实现了，性能应该会好些
 
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.substringWithConcatenationOfAllWords_30("barfoothefoobarman",  ["foo","bar"])
-    ha.substringWithConcatenationOfAllWords_30("wordgoodgoodgoodbestword", ["word","good","best","word"])
-    ha.substringWithConcatenationOfAllWords_30("barfoofoobarthefoobarman", ["bar","foo","the"])
+    ha.sudokuSolver_37([ [5,3,None,None,7,None,None,None,None],[6,None,None,1,9,5,None,None,None],[None,9,8,None,None,None,None,6,None],
+                         [8,None,None,None,6,None,None,None,3],[4,None,None,8,None,3,None,None,1],[7,None,None,None,2,None,None,None,6],
+                         [None,6,None,None,None,None,2,8,None],[None,None,None,4,1,9,None,None,5],[None,None,None,None,8,None,None,7,9]])
+
+    # ha.longestValidParenthesis_32("(()")
+    # ha.longestValidParenthesis_32(")()())")
+    # ha.longestValidParenthesis_32("")
+
+    # ha.substringWithConcatenationOfAllWords_30("barfoothefoobarman",  ["foo","bar"])
+    # ha.substringWithConcatenationOfAllWords_30("wordgoodgoodgoodbestword", ["word","good","best","word"])
+    # ha.substringWithConcatenationOfAllWords_30("barfoofoobarthefoobarman", ["bar","foo","the"])
 
     # ha.reverseNodesInKGroup_25([1,2,3,4,5], 2)
 
