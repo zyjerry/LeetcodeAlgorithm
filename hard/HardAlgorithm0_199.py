@@ -3,6 +3,8 @@
     DATE        AUTHOR        CONTENTS
     2025-08-03  Jerry Chang   Create
 """
+from functools import total_ordering
+
 
 # 主类，算法实现都在这里面
 class HardAlgorithm0_199:
@@ -401,13 +403,202 @@ class HardAlgorithm0_199:
         # 官解方法一、方法二用递归回溯的方式，硬尝试每个可能的数字组合，感觉性能也不一定好，只是代码量简洁些
         # 官解方法三枚举优化，有点类似于我的方法，只是还是用递归实现了，性能应该会好些
 
+    """
+    41. 缺失的第一个正数：给你一个未排序的整数数组 nums ，请你找出其中没有出现的最小的正整数。请你实现时间复杂度为 O(n) 并且只使用常数级别额外空间的解决方案。
+        示例 1：输入：nums = [1,2,0]，输出：3，解释：范围 [1,2] 中的数字都在数组中。
+        示例 2：输入：nums = [3,4,-1,1]，输出：2，解释：1 在数组中，但 2 没有。
+        标签：数组，哈希表
+        https://leetcode.cn/problems/first-missing-positive/description/
+    """
+
+    def firstMissingPositive_41(self,nums:list[int]) -> int:
+        # 思路1：有个专属python的骚操作，可能不符合性能要求。目标数据肯定在1~len(nums)之间，轮询判断是否在数组中就好了
+        for i in range(1, len(nums) + 1):
+            if i not in nums:
+                print(i)
+                # return i
+
+        # 思路2：我自己是想不到能满足时间复杂度为 O(n)、只使用常数级别额外空间的方法，看了官解也是个鬼才，可以号称“原地哈希”
+        # 第一步：如果nums长度为l，把所有负数变为l+1的正数
+        for i in range(len(nums)):
+            if nums[i] <= 0:
+                nums[i] = len(nums)+1
+        print('置正后：',nums)
+        # 此时数列所有值都是正数了，遍历每个元素，对于值小于l的，将坐标为该值-1的元素反转为负数
+        for i in range(len(nums)):
+            absval = abs(nums[i]) - 1
+            if absval < len(nums):
+                nums[absval] = -abs(nums[absval])
+        print('计算后：',nums)
+        # 此时，第一个值不为负的元素，其下标+1即为未出现的元素
+        for i in range(len(nums)):
+            if nums[i] > 0:
+                print(i+1,nums)
+                return i+1
+
+    """
+    42. 接雨水：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。图示更直观一点，看原网页。
+        示例 1：输入：height = [0,1,0,2,1,0,1,3,2,1,2,1]，输出：6
+        示例 2：输入：height = [4,2,0,3,2,5]，输出：9
+        标签：栈，数组，双指针，动态规划，单调栈
+        https://leetcode.cn/problems/trapping-rain-water/description/
+    """
+
+    def trappingRainWater_42(self,height:list[int]) -> int:
+        # 朴素的思路1：判断一个空位置是否能存水，条件是左边和右边是否都有“壁垒”，先找出数列中最高的位置，从height[1]开始判断，双重循环
+        totalwater = 0
+        # 先找出数列中最高的位置
+        maxleval = 0
+        for i in range(len(height)):
+            if height[i] > maxleval:
+                maxleval = height[i]
+        # 从从height[1]开始判断，每个柱子上方是否能“存水”
+        for i in range(1,len(height)-1):
+            for j in range(height[i],maxleval):
+                flag1,flag2 = False,False
+                # 向左找壁垒，没有的话跳过
+                for m in range(0,i):
+                    if height[m] > j:
+                        flag1 = True
+                        break
+                # 向右找壁垒，没有的话跳过
+                for m in range(i+1, len(height)):
+                    if height[m] > j:
+                        flag2 = True
+                        break
+                # 如果左右都有壁垒，说明这个位置可以装水
+                if flag1 and flag2:
+                    totalwater += 1
+        print(totalwater)
+        # return totalwater
+
+        # 官解版动态规划思路，性能要好一些。先计算出每个元素左边最大高度和右边最大高度，取其小减去本元素值，即可装的水
+        totalwater = 0
+        leftmax,rightmax = [0],[0]
+        # 计算出每个元素左边最大高度
+        for i in range(1,len(height)):
+            leftmax.append(max(leftmax[i-1],height[i-1]))
+        # 计算出每个元素右边最大高度
+        for i in range(len(height)-2,-1,-1):
+            tmp = rightmax[0]
+            rightmax.insert(0,max(tmp,height[i+1]))
+        print(leftmax,rightmax)
+
+        # 累计水量
+        for i in range(1,len(height)-1):
+            totalwater += max((min(leftmax[i],rightmax[i]) - height[i]),0)
+        print(totalwater)
+        return totalwater
+
+    """
+    51. N 皇后：按照国际象棋的规则，皇后可以攻击与之处在同一行或同一列或同一斜线上的棋子。
+               n 皇后问题 研究的是如何将 n 个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击。
+               给你一个整数 n ，返回所有不同的 n 皇后问题 的解决方案。每一种解法包含一个不同的 n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
+        示例 1：输入：n = 4，输出：[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
+        标签：数组，回溯
+        https://leetcode.cn/problems/n-queens/description/
+    """
+
+    def nQueens_51(self,n:int) -> list[list[str]]:
+        # 思路：硬递归，在每个格子一层一层向下尝试，效率可能不太好
+        result = []
+
+        # 定义一个递归函数，第一个参数是singleresult，第二个参数是递归深入的层次，表示本次从第几行开始
+        def recursion(sr:list[str],level:int):
+            # 如果到达了最底层，说明本次走通，将sr放入result中
+            if level == n:
+                a = sr.copy()
+                result.append(a)
+                print('层',level,'递归成功，result',result)
+                return True
+            # 如果未到最底层，需要继续判断
+            # ssrr = sr.copy()
+
+            # 本行循环判断
+            flag = False
+            for i in range(n):
+                print('层',level,'列',i, 'ssrr befor:',sr,'点位',sr[level][i],'flag',flag)
+                # 如果本次位置为.，说明可以放Q，置为Q
+                if sr[level][i] == '.':
+                    sr[level] = sr[level][:i] + 'Q' + sr[level][i+1:]
+                    # print('ssrr[level]',ssrr[level])
+                    flag = True
+                    # 把该位置所有竖向下、斜向下位置都置为‘N’表示后面不可放置Q
+                    x,y = i,i
+                    for j in range(level+1, n):
+                        x = x - 1
+                        if 0<=x<n:
+                            sr[j] = sr[j][:x] + 'N' + sr[j][x+1:]
+                        sr[j] = sr[j][:i] + 'N' + sr[j][i+1:]
+                        y = y + 1
+                        if 0<=y<n:
+                            sr[j] = sr[j][:y] + 'N' + sr[j][y+1:]
+                        # print('j,x', j, x,'  j,i',j,i, '  j,y',j,y)
+                        # print('ssrr mid:',ssrr)
+                    # 下一层递归
+                    print('层',level,'列',i,'竖向下、斜向下位置都置为‘N’后的ssrr:',sr)
+                    # 如果下一层递归失败，需要把本层改回去，,注意，这里不能直接根据本层Q的位置改它的影响，而是要从第0层开始重新置N，这里比较费性能
+                    # b = level+1
+                    ff = recursion(sr,level+1)
+                    if not ff:
+                        print('层',level,'列',i,'向下递归失败,ssrr:',sr)
+                        for l in range(n):
+                            for m in range(n):
+                                if sr[l][m] != 'Q':
+                                    sr[l] = sr[l][:m] + '.' + sr[l][m+1:]
+                        # 当前位置的Q也要改回成.
+                        sr[level] = sr[level][:i] + '.' + sr[level][i+1:]
+                        print('层', level, '列', i, '向下递归失败,清零后的ssrr:', sr)
+                        for l in range(level):
+                            for m in range(n):
+                                if sr[l][m] == 'Q':
+                                    x, y = m, m
+                                    for j in range(l + 1, n):
+                                        x = x - 1
+                                        if 0 <= x < n :
+                                            sr[j] = sr[j][:x] + 'N' + sr[j][x + 1:]
+                                        sr[j] = sr[j][:m] + 'N' + sr[j][m + 1:]
+                                        y = y + 1
+                                        if 0 <= y < n :
+                                            sr[j] = sr[j][:y] + 'N' + sr[j][y + 1:]
+                        print('层', level, '列',i,'向下递归失败,修正后的ssrr:', sr)
+
+            # 如果本行都循环完了，还是没法安置Q，说明该方案行不通，返回False不要再递归了
+            if not flag:
+                return False
+
+        # 单个矩阵初始化为全部.
+        singleresult = ['.'*n for _ in range(n)]
+        print(singleresult)
+        # 递归调用
+        recursion(singleresult, 0)
+        # 把结果中标记临时状态的N恢复成.
+        for i in range(len(result)):
+            for j in range(len(result[i])):
+                result[i][j] = result[i][j].replace('N','.')
+
+        print('共有',len(result),'个方案',result)
+        return result
+
+        # 官解方法的确要巧妙些，和我的思路是反向的，它在判断每个格子是否可以放置皇后时，就看该格子所在列、两条斜线上是否已有皇后即可，
+        # 不需要像上述方法一样回溯判断并记录整个棋盘上哪个可以放皇后，哪个不可以放。代码暂时不写了，这个题做了2天有点累了。
+
+
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.sudokuSolver_37([ [5,3,None,None,7,None,None,None,None],[6,None,None,1,9,5,None,None,None],[None,9,8,None,None,None,None,6,None],
-                         [8,None,None,None,6,None,None,None,3],[4,None,None,8,None,3,None,None,1],[7,None,None,None,2,None,None,None,6],
-                         [None,6,None,None,None,None,2,8,None],[None,None,None,4,1,9,None,None,5],[None,None,None,None,8,None,None,7,9]])
+    ha.nQueens_51(5)
+
+    # ha.trappingRainWater_42([0,1,0,2,1,0,1,3,2,1,2,1])
+    # ha.trappingRainWater_42([4,2,0,3,2,5])
+
+    # ha.firstMissingPositive_41([1,2,0])
+    # ha.firstMissingPositive_41([3, 4, -1, 1])
+
+    # ha.sudokuSolver_37([ [5,3,None,None,7,None,None,None,None],[6,None,None,1,9,5,None,None,None],[None,9,8,None,None,None,None,6,None],
+    #                      [8,None,None,None,6,None,None,None,3],[4,None,None,8,None,3,None,None,1],[7,None,None,None,2,None,None,None,6],
+    #                      [None,6,None,None,None,None,2,8,None],[None,None,None,4,1,9,None,None,5],[None,None,None,None,8,None,None,7,9]])
 
     # ha.longestValidParenthesis_32("(()")
     # ha.longestValidParenthesis_32(")()())")
