@@ -3,7 +3,8 @@
     DATE        AUTHOR        CONTENTS
     2025-08-03  Jerry Chang   Create
 """
-from functools import total_ordering
+import math
+import re
 
 
 # 主类，算法实现都在这里面
@@ -583,12 +584,207 @@ class HardAlgorithm0_199:
         # 官解方法的确要巧妙些，和我的思路是反向的，它在判断每个格子是否可以放置皇后时，就看该格子所在列、两条斜线上是否已有皇后即可，
         # 不需要像上述方法一样回溯判断并记录整个棋盘上哪个可以放皇后，哪个不可以放。代码暂时不写了，这个题做了2天有点累了。
 
+    """
+    60. 排列序列：给出集合 [1,2,3,...,n]，其所有元素共有 n! 种排列。按大小顺序列出所有排列情况，并一一标记，当 n = 3 时, 所有排列如下：
+                "123"，"132"，"213"，"231"，"312"，"321"，给定 n 和 k，返回第 k 个排列。
+        示例 1：输入：n = 3, k = 3，输出："213"
+        示例 2：输入：n = 4, k = 9，输出："2314"
+        标签：递归，数学
+        https://leetcode.cn/problems/permutation-sequence/description/
+    """
+
+    def permutationSequence_60(self,n:int,k:int) -> str:
+        # 思路：递归算出所有的排列组合，再取出第k个
+
+        resultlist = []
+
+        def recursion(s:str, candidates:list[int]) -> None:
+            if candidates == []:
+                resultlist.append(s)
+                return
+            else:
+                for i in candidates:
+                    cc = candidates.copy()
+                    ss = s + str(i)
+                    cc.remove(i)
+                    recursion(ss, cc)
+
+        c = [i for i in range(1,n+1)]
+        recursion('', c)
+        print('所有排列组合：',resultlist,'，其中第k个：',resultlist[k-1])
+        # return resultlist[k-1]
+
+        # 官解思路倒是也挺有意思的，完全不同，通过数学推导出，第 k 个排列的首个元素是有公式推导出来的，依此类推，使用相似的思路，确定下一个元素
+        # 这样的话，就不用递归，直接循环完事，时空性能都优于前面的递归
+        c = [i for i in range(1, n + 1)]
+        nn = n
+        kk = k
+        s = ''
+        while len(c) > 1:
+            m = (kk-1)//math.factorial(nn-1)
+            s = s + str(c[m])
+            c.pop(m)
+            kk = kk % math.factorial(nn-1)
+            nn = nn - 1
+            print('after',c,kk,s,nn)
+        s = s + str(c[0])
+        print(s)
+        return s
+
+    """
+    65. 有效数字：给定一个字符串 s ，返回 s 是否是一个 有效数字。
+                例如，下面的都是有效数字："2", "0089", "-0.1", "+3.14", "4.", "-.9", "2e10", "-90E3", "3e+7", "+6e-1", "53.5e93", "-123.456e789"，
+                而接下来的不是："abc", "1a", "1e", "e3", "99e2.5", "--6", "-+3", "95a54e53"。
+        示例 1：输入：s = "0"，输出：true
+        示例 2：输入：s = "e"，输出：false
+        示例 3：输入：s = "."，输出：false
+        标签：字符串
+        https://leetcode.cn/problems/valid-number/description/
+    """
+
+    def validNumber_65(self,s:str) -> bool:
+        print('待匹配字符串',s)
+        # 思路：假如能用正则表达式的话，这题就很好解
+        pattern = '(^([+-]?[0-9]*[.]?[0-9]*)$)|(^([+-]?[0-9]*[.]?[0-9]+(e|E)[+-]?[0-9]+)$)'
+        flag = re.match(pattern,s)
+        print(flag)
+        # if flag == None:
+        #     return False
+        # else:
+        #     return True
+
+        # 但显然题目的意思不是用现成的
+        i = 0
+
+        # 当首位是'+','-'时，符合要求，
+        if s[i] not in ('+','-','0','1','2','3','4','5','6','7','8','9','.'):
+            return False
+
+        if s[i] in ('+','-'):
+            i = i + 1
+
+        # 下一步后面应该跟数字或'.'，且.只能出现一次
+        tmp = ''
+        j = 0
+        while i+j < len(s):
+            if s[i+j] in ('0','1','2','3','4','5','6','7','8','9','.'):
+                j = j + 1
+            else:
+                break
+        tmp = tmp + s[i:i + j]
+        if tmp.count('.') > 1:
+            return False
+        print('tmp',tmp)
+        i = i + j
+        print('i',i)
+        # 此时如果i到底了就返回True
+        if i == len(s):
+            return True
+        # 此时如果s后面还有内容的话，应该是指数部分
+        if s[i] in ('e', 'E'):
+            i = i + 1
+        else:
+            return False
+        # 如果e|E后面没了，那也是部队的
+        if i == len(s):
+            return False
+        if s[i] in ('+', '-'):
+            i = i + 1
+        # 如果e|E和=|-后面也没了，那也是不对的
+        if i == len(s):
+            return False
+        # 后面应当全是数字，否则也是不对的
+        while i < len(s):
+            if s[i] not in ('0','1','2','3','4','5','6','7','8','9'):
+                return False
+            i = i + 1
+        return True
+
+        # 官解使用有限状态自动机的概念，其实跟上述思想差不多，这里就不写了
+
+    """
+    68. 文本左右对齐：给定一个单词数组 words 和一个长度 maxWidth ，重新排版单词，使其成为每行恰好有 maxWidth 个字符，且左右两端对齐的文本。
+                   你应该使用 “贪心算法” 来放置给定的单词；也就是说，尽可能多地往每行中放置单词。必要时可用空格 ' ' 填充，使得每行恰好有 maxWidth 个字符。
+                   要求尽可能均匀分配单词间的空格数量。如果某一行单词间的空格不能均匀分配，则左侧放置的空格数要多于右侧的空格数。
+                   文本的最后一行应为左对齐，且单词之间不插入额外的空格。
+        示例 1：输入: words = ["This", "is", "an", "example", "of", "text", "justification."], maxWidth = 16
+               输出:[   "This    is    an",
+                       "example  of text",
+                       "justification.  "
+                    ]
+        标签：数组，字符串，模拟
+        https://leetcode.cn/problems/text-justification/description/
+    """
+
+    def textJustification_68(self,words:list[str], maxWidth:int) -> list[str]:
+        # 思路：先根据maxWidth的限制，确定应该把单词组分成几部分，再根据每组单词的长度确定单词间应该留几个空格
+        # 先根据maxWidth的限制，确定应该把单词组分成几部分，结果放进groupwords中
+        groupwords, unitwords,groupworscount = [],[],[]
+        grouplength = 0
+        for w in words:
+            if grouplength + len(w)  + len(unitwords) < maxWidth:
+                # print('if',w, grouplength, len(w), unitwords, len(unitwords))
+                unitwords.append(w)
+                grouplength += len(w)
+            else:
+                # print('else', w, grouplength, len(w), unitwords, len(unitwords))
+                # 把每一组单词字符数量也记下来，便于后续算空格数
+                groupworscount.append(grouplength)
+                grouplength = len(w)
+                groupwords.append(unitwords.copy())
+                unitwords = [w]
+        groupwords.append(unitwords.copy())
+        groupworscount.append(grouplength)
+
+        print(groupwords,groupworscount)
+
+        # 确定每组单词中间应该空几格，放入最终结果result中
+        result = []
+        s = ''
+        for i in range(len(groupwords)-1):
+            s = ''
+            minblanks = (maxWidth-groupworscount[i])//(len(groupwords[i])-1)
+            model = (maxWidth-groupworscount[i])%(len(groupwords[i])-1)
+            for j in range(len(groupwords[i])-1):
+                s = s + groupwords[i][j] + ' ' * minblanks
+                if j < model:
+                    s = s + ' '
+            # 最后一个单词后面不用加空格
+            s = s + groupwords[i][-1]
+            result.append(s)
+
+        # 处理最后一行，末尾追加空格
+        s = ''
+        for j in range(len(groupwords[-1])):
+            s = s + groupwords[-1][j] + ' '
+        model = maxWidth - len(s)
+        s = s + ' ' * model
+        result.append(s)
+        print(result)
+        return result
 
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.nQueens_51(5)
+    ha.textJustification_68(["This", "is", "an", "example", "of", "text", "justification."],16)
+
+    # print(ha.validNumber_65('+3.14'))
+    # print(ha.validNumber_65('-.9'))
+    # print(ha.validNumber_65('3e+7'))
+    # print(ha.validNumber_65('+6e-1'))
+    # print(ha.validNumber_65('-123.456e789'))
+
+    # print(ha.validNumber_65('1a'))
+    # print(ha.validNumber_65('e3'))
+    # print(ha.validNumber_65('99e2.5'))
+    # print(ha.validNumber_65('--6'))
+    # print(ha.validNumber_65('95a54e53'))
+
+    # ha.permutationSequence_60(3,2)
+    # ha.permutationSequence_60(5,13)
+
+    # ha.nQueens_51(4)
 
     # ha.trappingRainWater_42([0,1,0,2,1,0,1,3,2,1,2,1])
     # ha.trappingRainWater_42([4,2,0,3,2,5])
