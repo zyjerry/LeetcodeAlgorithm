@@ -3,8 +3,10 @@
     DATE        AUTHOR        CONTENTS
     2025-08-03  Jerry Chang   Create
 """
+import itertools
 import math
 import re
+from queue import PriorityQueue
 
 
 # 主类，算法实现都在这里面
@@ -763,11 +765,164 @@ class HardAlgorithm0_199:
         print(result)
         return result
 
+    """
+    76. 最小覆盖子串：给你一个字符串 s 、一个字符串 t 。返回 s 中涵盖 t 所有字符的最小子串。如果 s 中不存在涵盖 t 所有字符的子串，则返回空字符串 "" 。
+                   注意：对于 t 中重复字符，我们寻找的子字符串中该字符数量必须不少于 t 中该字符数量。如果 s 中存在这样的子串，我们保证它是唯一的答案。
+                   进阶：你能设计一个在 o(m+n) 时间内解决此问题的算法吗？
+        示例 1：输入：s = "ADOBECODEBANC", t = "ABC"，输出："BANC"，解释：最小覆盖子串 "BANC" 包含来自字符串 t 的 'A'、'B' 和 'C'。
+        标签：哈希表，字符串，滑动窗口
+        https://leetcode.cn/problems/minimum-window-substring/description/
+    """
+
+    def minimumWindowSubstring_76(self,s:str,t:str) -> str:
+        # 思路：如果有答案的话，那么结果子串的长度一定>=t的长度，我们从t长度开始，一直到s长度，逐步滑动窗口的方式判断每个字串内容是否都包含t
+        # 但是这个思路的性能不满足o(m+n)
+        lent = len(t)
+        while lent<=len(s):
+            for i in range(len(s)-lent+1):
+                finalstr,tmpstr = s[i:i+lent],s[i:i+lent]
+                # print('本轮待匹配字符串', tmpstr)
+                # 这里正式判断tmpstr是否包含t的所有字母
+                for j in range(len(t)):
+                    p = tmpstr.find(t[j])
+                    # print('    待匹配字符串', tmpstr,'本轮待匹配t的字符',t[j],'是否匹配',p)
+                    if p == -1:
+                        break
+                    else:
+                        tmpstr = tmpstr[0:p] + tmpstr[p+1:]
+                # 此时，tmpstr中能匹配得上得字符都剔除掉了，剩下来的字符长度应该是lent - len(t)，否则说明t中有没匹配上的
+                if len(tmpstr) == lent - len(t):
+                    print('有匹配的',finalstr)
+                    return finalstr
+            lent += 1
+        print('没有匹配的')
+        return ''
+
+    def minimumWindowSubstring_76_map(self, s: str, t: str) -> str:
+        # 思路2：创建2个dict类型的hashmap，一个存放t中每个字符出现的次数，一个存放t中每个字符出现在s中的坐标，
+        # 经过一轮判断后，取hashmap中坐标的最大最小值，既是最小匹配字符串，当同一个字母出现多次的话，需要额外判断取哪个最优
+        # 最后做下来，感觉这个方法也挺麻烦，思路比上一个还要绕
+        # 初始化countmap,idxmap
+        countmap,idxmap = {},{}
+        for i in range(len(t)):
+            if t[i] not in countmap:
+                countmap[t[i]] = 1
+            else:
+                countmap[t[i]] += 1
+            idxmap[t[i]] = set()
+
+        # 记录t中每个字符在s中的坐标
+        for i in range(len(t)):
+            j = 0
+            while j<len(s):
+                p = s.find(t[i],j)
+                if p == -1:
+                    break
+                idxmap[t[i]].add(p)
+                j = p + 1
+        print(countmap,idxmap)
+
+        # 走到这里发现也挺难的，如果是一个字母出现多次，特别是t中有重复字母的话，还需要继续把所有可能的排列组合列出来，找个最短的
+        # 这里偷懒，用个现成的排列组合函数
+        newmap = {}
+        for i in idxmap.keys():
+            l = []
+            for u in itertools.combinations(idxmap[i],countmap[i]):
+                l.append(list(u))
+            newmap[i] = l
+        print(newmap,list(newmap.keys()))
+        # 到这里，newmap是个dict（即hashmap），key是t中的每个字母，value是字母在s中所有坐标的可能组合，value也是个list
+        def recursion(l:list, keys:list,result:list) -> int:
+            if keys ==[]:
+                minl, maxl =min(l), max(l)
+                if (maxl-minl) < (result[1] - result[0]):
+                    result[1], result[0] = maxl, minl
+                return 0
+            for i in keys:
+                for j in newmap[i]:
+                    # print('i,j', i,j,newmap[i])
+                    ll = l.copy()
+                    ll.extend(j)
+                    kk = keys.copy()
+                    kk.remove(i)
+                    # print('ll,kk',ll,kk)
+                    recursion(ll,kk,result)
+        rr = [0,len(s)]
+        recursion([],list(newmap.keys()),rr)
+        print(rr,s[rr[0]:rr[1]+1])
+        return s[rr[0]:rr[1]+1]
+
+        # 官解是用滑动窗口思想，在滑动窗口类型的问题中都会有两个指针，一个用于「延伸」现有窗口的 r 指针，和一个用于「收缩」窗口的 l 指针。
+        # 在任意时刻，只有一个指针运动，而另一个保持静止。我们在 s 上滑动窗口，通过移动 r 指针不断扩张窗口。
+        # 当窗口包含 t 全部所需的字符后，如果能收缩，我们就收缩窗口直到得到最小窗口。
+        # 如何判断当前的窗口包含所有 t 所需的字符呢？我们可以用一个哈希表表示 t 中所有的字符以及它们的个数，用一个哈希表动态维护窗口中所有的字符以及它们的个数，
+        # 如果这个动态表中包含 t 的哈希表中的所有字符，并且对应的个数都不小于 t 的哈希表中各个字符的个数，那么当前的窗口是「可行」的。
+        # 应该性能好点，暂时不写了。
+
+    """
+    84. 柱状图中最大的矩形：给定 n 个非负整数，用来表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1 。求在该柱状图中，能够勾勒出来的矩形的最大面积。
+        示例 1:输入：heights = [2,1,5,6,2,3]，输出：10，解释：最大的矩形为图中红色区域，面积为 10
+        标签：栈，数组，单调栈
+        https://leetcode.cn/problems/largest-rectangle-in-histogram/description/
+    """
+
+    def largestRectangleinHistogram_84(self,heights:list[int]) -> int:
+        # 思路：一个笨办法：从底向上一层一层算，每层的最大面积，最终取最大的。每层的最大面积，取决于该层上最大的连续柱子数量
+
+        # 先把原列表去重排序，找出列表中的最小最大值，以此为搜索范围开始，最小值如果是0没有意义，忽略，从1开始
+        tidylist = sorted(list(set(heights)))
+        if 0 in tidylist:
+            tidylist.remove(0)
+        print('去重排序后的列表',tidylist)
+
+        # 从小到大每个元素值，判断该元素周围不小于它的最大连续宽度，计算面积并保留最大的
+        maxacreage = 0
+        for i in tidylist:
+            b = 0
+            while True:
+                try:
+                    b = heights.index(i,b,len(heights))
+                except:
+                    break
+                # 以b坐标为中心，分别向左、向右延伸寻找边界
+                else:
+                    width = 0
+                    # 向左
+                    left = b-1
+                    while left>=0 and heights[left] >= i:
+                        left = left-1
+                        width = width+1
+                    # print('  b',b,'left', left,'width',width)
+                    # 向右
+                    right = b
+                    while right < len(heights) and heights[right] >= i:
+                        right = right+1
+                        width = width+1
+                    # print('  b',b,'right', right, 'width', width)
+                    # b坐标向后挪一位，以防i值有重复，要全部判断到
+                    b = b + 1
+                # 保留面积最大的
+                if i*width > maxacreage:
+                    maxacreage = i*width
+                print('高度为', i, '坐标',b-1,'最大连续宽度为', width,'最大面积', maxacreage)
+
+        print('最大面积', maxacreage)
+        return maxacreage
+
+        # 官解用了单调栈，性能应该更优，但是比较难理解，暂时理解不了，先放一放
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.textJustification_68(["This", "is", "an", "example", "of", "text", "justification."],16)
+    ha.largestRectangleinHistogram_84( [2,1,5,6,2,3])
+
+
+    # ha.minimumWindowSubstring_76("ADOBECODEBANC", "ABC")
+    # ha.minimumWindowSubstring_76("a", "aa")
+    # ha.minimumWindowSubstring_76("ADOBECODEBANC", "ABAC")
+    # ha.minimumWindowSubstring_76_map("ADOBECODEBANC", "ABAC")
+
+    # ha.textJustification_68(["This", "is", "an", "example", "of", "text", "justification."],16)
 
     # print(ha.validNumber_65('+3.14'))
     # print(ha.validNumber_65('-.9'))
