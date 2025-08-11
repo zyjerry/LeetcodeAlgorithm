@@ -911,11 +911,59 @@ class HardAlgorithm0_199:
 
         # 官解用了单调栈，性能应该更优，但是比较难理解，暂时理解不了，先放一放
 
+    """
+    85. 最大矩形：给定一个仅包含 0 和 1 、大小为 rows x cols 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。
+        示例 1：输入：matrix = [["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]，输出：6
+        标签：栈，数组，动态规划，矩阵，单调栈
+        https://leetcode.cn/problems/maximal-rectangle/description/
+    """
+
+    def maximalRectangle_85(self,matrix:list[list[str]]) -> int:
+        # 思路：遍历每个格子，碰到1，从这里开始向右下方拓展计算能到达的最大矩形，记下来
+        maxrectangle = 0
+        for i in range(len(matrix)):
+            for j in range(len(matrix[0])):
+                if matrix[i][j] == "1":
+                    print('当前坐标', i, j, '坐标值', matrix[i][j])
+                    # 先看该位置向右或者向下能拓展的最大边界
+                    maxi,maxj = i,j
+                    while maxi<len(matrix) and matrix[maxi][j] == '1':
+                        maxi = maxi+1
+                    while maxj<len(matrix[0]) and matrix[i][maxj] == '1':
+                        maxj = maxj+1
+                    print('向下、向右能拓展的最大边界',maxi-1,maxj-1)
+                    # 逐步向下试探最大矩阵面积
+                    m = i
+                    while m < maxi:
+                        n = j
+                        while n < maxj:
+                            # print('m,n',m,n,'matrix[m][n]',matrix[m][n])
+                            if matrix[m][n] == '1':
+                                if maxrectangle < (m-i+1)*(n-j+1):
+                                    maxrectangle = (m-i+1)*(n-j+1)
+                                n = n + 1
+                            else:
+                                maxj = n
+                                break
+                        # print('maxi,maxj',maxi,maxj)
+                        m = m + 1
+                    print('maxrectangle',maxrectangle)
+        print(maxrectangle)
+        return maxrectangle
+
+        # 官解本质思路应该跟我的上述思路差不多，并且补充说明，该方法本质上是「84. 柱状图中最大的矩形」题中优化暴力算法的复用，这个我倒是没想到
+
+
+
+
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.largestRectangleinHistogram_84( [2,1,5,6,2,3])
+    ha.maximalRectangle_85([["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]])
+    ha.maximalRectangle_85([["0"]])
+    ha.maximalRectangle_85([["1"]])
 
+    # ha.largestRectangleinHistogram_84( [2,1,5,6,2,3])
 
     # ha.minimumWindowSubstring_76("ADOBECODEBANC", "ABC")
     # ha.minimumWindowSubstring_76("a", "aa")
