@@ -953,15 +953,80 @@ class HardAlgorithm0_199:
 
         # 官解本质思路应该跟我的上述思路差不多，并且补充说明，该方法本质上是「84. 柱状图中最大的矩形」题中优化暴力算法的复用，这个我倒是没想到
 
+    """
+    87. 扰乱字符串：使用下面描述的算法可以扰乱字符串 s 得到字符串 t ：
+                     如果字符串的长度为 1 ，算法停止；如果字符串的长度 > 1 ，执行下述步骤：
+                     在一个随机下标处将字符串分割成两个非空的子字符串。即，如果已知字符串 s ，则可以将其分成两个子字符串 x 和 y ，且满足 s = x + y 。
+                     随机 决定是要「交换两个子字符串」还是要「保持这两个子字符串的顺序不变」。即，在执行这一步骤之后，s 可能是 s = x + y 或者 s = y + x 。
+                     在 x 和 y 这两个子字符串上继续从开始递归执行此算法。
+                 给你两个 长度相等 的字符串 s1 和 s2，判断 s2 是否是 s1 的扰乱字符串。如果是，返回 true ；否则，返回 false 。
+        示例 1：输入：s1 = "great", s2 = "rgeat"，输出：true
+        示例 2：输入：s1 = "abcde", s2 = "caebd"，输出：false
+        标签：字符串，动态规划
+        https://leetcode.cn/problems/scramble-string/description/
+    """
+
+    def scrambleString_87(self,s:str,t:str) -> bool:
+        # 思路：将s按照上述算法暴力递归得到所有的可能，如果命中t则返回True，
+        resultlist = []
+        # 建立递归函数，ss是每次待分割组合的字符串，返回值是个list，表示ss分割组合后所有的结果列表
+        def recursion(ss:str) -> list:
+            print('ss',ss,len(ss))
+            # 初始化：当ss长度为0/1/2时的返回值
+            if len(ss) == 0:
+                return []
+            elif len(ss)==1:
+                return [ss]
+            elif len(ss)==2:
+                return [ss,ss[1]+ss[0]]
+            # 当ss长度超过2时就要递归分割，首先有len(ss)-1中分割可能，依次循环
+            tmptmplist = []
+            for i in range(1,len(ss)):
+                tmplist = []
+                print('i',i,ss[:i],ss[i:])
+                # 递归左边字符串
+                leftlist = recursion(ss[:i])
+                #递归右边字符串
+                rightlist = recursion(ss[i:])
+                # print('leftlist',leftlist,'rightlist',rightlist)
+                # 两边所有字符串的可能组合，是左+右，或者右+左，都放到备选列表里
+                for l in leftlist:
+                    for r in rightlist:
+                        tmplist.append(l + r)
+                        tmplist.append(r + l)
+                # 除重
+                tmplist = list(set(tmplist))
+                # print('tmplist',tmplist)
+                # 如果左右长度和s一致，放到最终结果列表里
+                if (len(leftlist[0])+len(rightlist[0]))==len(s):
+                    resultlist.extend(tmplist)
+                tmptmplist.extend(tmplist)
+                # print('tmptmplist',tmptmplist)
+            return tmptmplist
+
+        ts = recursion(s)
+        resultset = set(resultlist)
+        print(len(resultset), resultset)
+        if t in resultset or t in ts:
+            return True
+        else:
+            return False
+
+        # 官解的动态规划方法实在没看明白，暂时放弃，貌似时空性能是更优的
+
 
 
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.maximalRectangle_85([["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]])
-    ha.maximalRectangle_85([["0"]])
-    ha.maximalRectangle_85([["1"]])
+    print(ha.scrambleString_87("great", "rgeat"))
+    print(ha.scrambleString_87("abcde", "caebd"))
+    print(ha.scrambleString_87("a", "a"))
+
+    # ha.maximalRectangle_85([["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]])
+    # ha.maximalRectangle_85([["0"]])
+    # ha.maximalRectangle_85([["1"]])
 
     # ha.largestRectangleinHistogram_84( [2,1,5,6,2,3])
 
