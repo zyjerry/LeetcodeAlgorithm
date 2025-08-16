@@ -6,8 +6,6 @@
 import itertools
 import math
 import re
-from queue import PriorityQueue
-
 
 # 主类，算法实现都在这里面
 class HardAlgorithm0_199:
@@ -1014,15 +1012,182 @@ class HardAlgorithm0_199:
 
         # 官解的动态规划方法实在没看明白，暂时放弃，貌似时空性能是更优的
 
+    """
+    115. 不同的子序列：给你两个字符串 s 和 t ，统计并返回在 s 的 子序列 中 t 出现的个数。
+        示例 1：输入：s = "rabbbit", t = "rabbit"，输出：3
+        标签：字符串，动态规划
+        https://leetcode.cn/problems/distinct-subsequences/description/
+    """
+
+    def distinctSubsequences_115(self,s:str,t:str) -> int:
+        # 思路：一个笨办法，先确定t一共有哪些划分方法：理论上可以切成1~len(t)-1段，当切成n段时，有C(len(t)-1,n)中切法
+        # 所以，每种切法都会形成一个子串列表，判断这些子串是否都在s中即可，同时可以加一个约束条件是，当t切成n段时，s的长度必须大于len(t)+n-1，因为每段之间至少要有一个字母的间隔
+
+        # 先定义一个递归函数，实现动态规划，原理后面讲
+        # 参数：idx：当前判断第几个子串；nn：总共子串的数量；dvdl:子串内容；idxl:子串在s中匹配到的坐标。以上参数都是只读的
+        #      rl：存储最终结果，虽然是个list，但是只存储一个元素值，因为要代入到递归深层次中做全局累计，所以用了list传址
+        def recursion(idx:int, nn:int, dvdl:list, idxl:list, rl:list) :
+            # print('recursion:',idx,nn,dvdl,idxl)
+            if idx == nn-1:
+                rl[0] = rl[0] + 1
+                # print('recursion result',rl[0])
+            else:
+                for i in idxl[idx]:
+                    f = False
+                    for j in idxl[idx+1]:
+                        # print('  recursion:',i,len(dvdl[idx]),j)
+                        # 子串之间在s中至少要有1个字母的间隔，
+                        if i+len(dvdl[idx]) < j:
+                            f = True
+                            recursion(idx+1,nn,dvdl,idxl,rl)
+                        else:
+                            break
+                    if not f:
+                        return
+
+
+        # 先确定n的上限，以及初始化t的坐标列表idxoroginlist，以及最终划分方案结果列表：
+        maxn = len(s)-len(t) + 1
+        idxoroginlist = list(range(len(t)-1))
+        resultlist = [0]
+        print('idxoroginlist',idxoroginlist)
+        # 从把t分成1段开始，一步一步往上加。分成n段，需要在0~len(t)-2坐标中找出n-1个
+        n = 1
+        while n <= maxn:
+            idxcomb = itertools.combinations(idxoroginlist,n-1)
+            for i in idxcomb:
+                l = list(i)
+                if l ==[] and s.find(t) != -1:
+                    resultlist[0] = resultlist[0] + 1
+                else:
+                    # 先把坐标变成子串列表
+                    dividelist = []
+                    tmpidx = 0
+                    for j in l:
+                        dividelist.append(t[tmpidx:j+1])
+                        tmpidx = j+1
+                    dividelist.append(t[tmpidx:len(t)+1])
+                    # 对子串列表中的每个子串判断是否在s中，按照题目要求，先把每个子串在s中所有的匹配位置找出来，存在一个二维数组中
+                    flag = True
+                    idxslist = []
+                    for divides in dividelist:
+                        tmplist = []
+                        tmpidx = s.find(divides)
+                        while tmpidx != -1:
+                            tmplist.append(tmpidx)
+                            tmpidx = s.find(divides,tmpidx+1)
+                        # 如果当前子串一个都没在s中匹配到，那么整个dividelist全部放弃
+                        if tmplist == []:
+                            flag = False
+                            break
+                        else:
+                            idxslist.append(tmplist)
+                    # 当该dividelist中所有字串都能在s中匹配到时，才满足条件，进一步判断有几种匹配组合方式
+                    if flag:
+                       # 此时，对dividelist、idxslist做动态规划的判断，是否满足要求，注意子串之间在s中至少要有1个字母的间隔，否则可能会出现重复结果
+                       recursion(0,n,dividelist,idxslist,resultlist)
+                       print('分成', n, '段的分法', dividelist, '匹配s的t子串坐标', idxslist, 'resultlist', resultlist)
+
+            n = n + 1
+
+        print('result',resultlist[0])
+        # return resultlist[0]
+
+        # 官解直接用公式推导s和t匹配的动态规划转移方程，还是比较抽象难于理解的，代码确实很简洁，根据对算法本身的理解再写一遍
+
+        # 初始化一个dp二维矩阵，dp[i][j]表示字符串s[i:]包含字符串t[j:]的个数，i<=len(s),j<=len(t)，
+        # 矩阵最右一列为1，表示t是空字符串时是任意字符串的子序列，其他置为0
+        dp = [[0 for _ in range(len(t)+1)] for _ in range(len(s)+1)]
+        for i in range(len(s)+1):
+            dp[i][len(t)] = 1
+
+        # 自下而上，自右向左，逐步迭代计算dp[i][j]
+        for i in range(len(s)-1,-1,-1):
+            for j in range(len(t)-1,-1,-1):
+                if s[i] == t[j]:
+                    dp[i][j] = dp[i+1][j+1] + dp[i+1][j]
+                else:
+                    dp[i][j] = dp[i+1][j]
+        print('dp',dp)
+        return dp[0][0]
+
+    """
+    123. 买卖股票的最佳时机 III：给定一个数组，它的第 i 个元素是一支给定的股票在第 i 天的价格。设计一个算法来计算你所能获取的最大利润。你最多可以完成 两笔 交易。
+                             注意：你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。
+        示例 1:输入：prices = [3,3,5,0,0,3,1,4]，输出：6
+        解释：在第 4 天（股票价格 = 0）的时候买入，在第 6 天（股票价格 = 3）的时候卖出，这笔交易所能获得利润 = 3-0 = 3 。
+             随后，在第 7 天（股票价格 = 1）的时候买入，在第 8 天 （股票价格 = 4）的时候卖出，这笔交易所能获得利润 = 4-1 = 3 。
+        标签：数组，动态规划
+        https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iii/description/
+    """
+
+    def bestTimeToBuyAndSellStockIII_123(self,prices:list) -> int:
+        # 这道题自己想实在没什么好的思路，参考官解和网友的思路，自己重写的。
+
+        # 思路1网友的：由于用到了多次的、多重循环，性能远不及官解，但是比较好理解
+        # 先算一个长度为n的数组，第i个元素表示第i天及第i天之前完成第一笔交易后，最大利润。
+        # 再算一个长度为n的数组，第i个元素表示第i天之后，购买第二笔交易，能获得的最大利润。
+        # 然后遍历两个数组，找到 vec1[i] + vec2[i] 最大的就是解了。
+        # 这里需要注意，网友说算最大利润“只要找到0 ~ i 中间的最大和最小值就行” ，这是不对的，还要考虑买卖是有先后顺序的，如果最大值在最小值前面就不成立
+
+        # 先单独定义一个函数，计算利润最大值
+        def maxrevenue(subprices:list) -> int:
+            maxval = 0
+            for i in range(len(subprices)):
+                for j in range(i+1,len(subprices)):
+                    if maxval < subprices[j] - subprices[i]:
+                        maxval = subprices[j] - subprices[i]
+            return maxval
+
+        # 计算每个子序列的最大利润，记入vec1,vec2中
+        vec1,vec2 = [],[]
+        for i in range(len(prices)):
+            leftlist = prices[:i+1]
+            vec1.append(maxrevenue(leftlist))
+            rightlist = prices[i+1:]
+            vec2.append(maxrevenue(rightlist))
+        print(vec1, vec2)
+
+        # 比较vec1[i]+vec2[i]的最大值，选取最大的
+        maxrevenue = 0
+        for i in range(len(vec1)):
+            if maxrevenue < vec1[i]+vec2[i]:
+                maxrevenue = vec1[i]+vec2[i]
+
+        print('最大收益',maxrevenue)
+        # return maxrevenue
+
+        # 思路2：官解动态规划，似乎股票收益类的算法都可以用动态规划，有个122题也是，比这个简单点，没做过。
+        # 这个动态规划算法比122题麻烦的是，限定最多交易两次，所以有4个核心状态：
+        # 第一次买、第一次卖、第二次买、第二次卖，需要在每个prices[i]中判断这4个状态的转移关系。详细逻辑看网页这里不写了，只是重写下代码。
+        # 先初始化原始状态的收益：
+        buy1,sell1,buy2,sell2 = -prices[0],0,-prices[0],0
+        for i in range(1,len(prices)):
+            buy1 = max(buy1,-prices[i])
+            sell1 = max(sell1,buy1+prices[i])
+            buy2 = max(buy2,sell1-prices[i])
+            sell2 = max(sell2, buy2+prices[i])
+        print('动态规划最大收益',buy1,sell1,buy2,sell2)
+        return sell2
+
 
 
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    print(ha.scrambleString_87("great", "rgeat"))
-    print(ha.scrambleString_87("abcde", "caebd"))
-    print(ha.scrambleString_87("a", "a"))
+    # l = [0,1,2,3,4,5,6,7,8]
+    # print(l[:9])
+    # print(l[4:])
+
+    ha.bestTimeToBuyAndSellStockIII_123([3,3,5,0,0,3,1,4])
+
+    # ha.distinctSubsequences_115("rabbbit", "rabbit")
+    # ha.distinctSubsequences_115("babgbag",  "bag")
+
+    # print(ha.scrambleString_87("great", "rgeat"))
+    # print(ha.scrambleString_87("abcde", "caebd"))
+    # print(ha.scrambleString_87("a", "a"))
 
     # ha.maximalRectangle_85([["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]])
     # ha.maximalRectangle_85([["0"]])
