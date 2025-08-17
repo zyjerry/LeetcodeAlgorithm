@@ -106,7 +106,39 @@ class MediumAlgorithm0_99:
     """    构造函数，什么都不做    """
 
     def __init__(self):
-        print('Hello World!')
+        print('Hello World! I''m MediumAlgorithm0_99''')
+
+    """    小工具，把广度遍历排列的list格式改成二叉树BinaryTreeNode的格式，初始化该数据结构，用于后续跟树相关的算法    """
+
+    def initiateBinaryTreeFromList(self,root:list) -> BinaryTreeNode:
+        # 先把list格式改成二叉树BinaryTreeNode的格式，初始化该数据结构
+        rootbtn = BinaryTreeNode(root[0], None, None)
+        poplist = [rootbtn]
+        i = 1
+        while poplist != [] or i < len(root):
+            currentrootbtn = poplist[0]
+            if i < len(root) and root[i] != None:
+                leftbtn = BinaryTreeNode(root[i],None,None)
+            else:
+                leftbtn = None
+            currentrootbtn.left=leftbtn
+            i = i + 1
+
+            if i < len(root) and root[i] != None:
+                rightbtn = BinaryTreeNode(root[i],None,None)
+            else:
+                rightbtn = None
+            currentrootbtn.right = rightbtn
+            i = i + 1
+
+            if leftbtn != None:
+                poplist.append(leftbtn)
+            if rightbtn != None:
+                poplist.append(rightbtn)
+
+            poplist.pop(0)
+
+        return rootbtn
 
     """
         2. 两数相加：给你两个 非空 的链表，表示两个非负的整数。它们每位数字都是按照 逆序 的方式存储的，并且每个节点只能存储 一位 数字。
@@ -2807,31 +2839,7 @@ class MediumAlgorithm0_99:
 
     def validateBinarySearchTree_98(self, root: list) -> bool:
         # 先把list格式改成二叉树BinaryTreeNode的格式，初始化该数据结构
-        rootbtn = BinaryTreeNode(root[0], None, None)
-        poplist = [rootbtn]
-        i = 1
-        while poplist != [] or i < len(root):
-            currentrootbtn = poplist[0]
-            if i < len(root) and root[i] != None:
-                leftbtn = BinaryTreeNode(root[i],None,None)
-            else:
-                leftbtn = None
-            currentrootbtn.left=leftbtn
-            i = i + 1
-
-            if i < len(root) and root[i] != None:
-                rightbtn = BinaryTreeNode(root[i],None,None)
-            else:
-                rightbtn = None
-            currentrootbtn.right = rightbtn
-            i = i + 1
-
-            if leftbtn != None:
-                poplist.append(leftbtn)
-            if rightbtn != None:
-                poplist.append(rightbtn)
-
-            poplist.pop(0)
+        rootbtn = self.initiateBinaryTreeFromList(root)
 
         # 思路1：深度遍历每个节点，每个节点都需要判断：
         # 左子树的所有节点值都比该节点值小，右子树的所有节点值都比该节点值大
@@ -2840,6 +2848,8 @@ class MediumAlgorithm0_99:
         flag = rootbtn.validateBinarySearchTree()
         if flag == None:
             flag = True
+        else:
+            flag = False
         return flag
 
         # 思路2：参照官解方法二，如果中序遍历后形成的数组是升序的，说明是有效的二叉搜索树。
@@ -3035,6 +3045,6 @@ if __name__ == "__main__":
     # ma.uniqueBinarySearchTree_96(8)
     # print(ma.interleavingString_97("aabcc",  "dbbca",  "aadbbcbcac"))
     # print(ma.interleavingString_97( "aabcc", "dbbca", "aadbbbaccc"))
-    # print(ma.validateBinarySearchTree_98([5,1,4,None,None,3,6]))
-    # print(ma.validateBinarySearchTree_98([2,1,3]))
-    ma.recoverBinarySearchTree_99([3,1,4,None,None,2])
+    print(ma.validateBinarySearchTree_98([5,1,4,None,None,3,6]))
+    print(ma.validateBinarySearchTree_98([2,1,3]))
+    # ma.recoverBinarySearchTree_99([3,1,4,None,None,2])
