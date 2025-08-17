@@ -6,13 +6,14 @@
 import itertools
 import math
 import re
+from medium.MediumAlgorithm0_99 import BinaryTreeNode, MediumAlgorithm0_99
 
 # 主类，算法实现都在这里面
 class HardAlgorithm0_199:
     """    构造函数，什么都不做    """
 
     def __init__(self):
-        print('Hello World!')
+        print('Hello World! I''m HardAlgorithm0_199''')
 
     """
     4. 寻找两个正序数组的中位数：给定两个大小分别为 m 和 n 的正序（从小到大）数组 nums1 和 nums2。请你找出并返回这两个正序数组的 中位数 。
@@ -1130,7 +1131,7 @@ class HardAlgorithm0_199:
         # 然后遍历两个数组，找到 vec1[i] + vec2[i] 最大的就是解了。
         # 这里需要注意，网友说算最大利润“只要找到0 ~ i 中间的最大和最小值就行” ，这是不对的，还要考虑买卖是有先后顺序的，如果最大值在最小值前面就不成立
 
-        # 先单独定义一个函数，计算利润最大值
+        # 先单独定义一个函数，计算一个序列中单次买卖利润最大值
         def maxrevenue(subprices:list) -> int:
             maxval = 0
             for i in range(len(subprices)):
@@ -1170,17 +1171,68 @@ class HardAlgorithm0_199:
         print('动态规划最大收益',buy1,sell1,buy2,sell2)
         return sell2
 
+    """
+    124. 二叉树中的最大路径和：二叉树中的 路径 被定义为一条节点序列，序列中每对相邻节点之间都存在一条边。
+                        同一个节点在一条路径序列中 至多出现一次 。该路径 至少包含一个 节点，且不一定经过根节点。
+                        路径和 是路径中各节点值的总和。给你一个二叉树的根节点 root ，返回其 最大路径和 。
+        示例 2：输入：root = [-10,9,20,null,null,15,7],输出：42,解释：最优路径是 15 -> 20 -> 7 ，路径和为 15 + 20 + 7 = 42
+        标签：树，深度优先搜索，动态规划，二叉树
+        https://leetcode.cn/problems/binary-tree-maximum-path-sum/description/
+    """
 
+    def binaryTreeMaximumPathSum_124(self,root:list) -> int:
+        # 思路：考虑到二叉树是左右对称的，这里只看从左到右的路径。通过中序深度遍历的方式，定义：每个节点的最大路径值=从其他左边的节点到达该节点的最大路径值
+        # 1、如果节点是左叶子，记为：本节点值；
+        # 2、如果节点是右叶子，记为：max(父节点最大路径值 + 本节点值, 本节点值)；
+        # 3、如果节点不是叶子，且节点本身是左/根节点，记为：max(左子节点最大路径值 + 本节点值, 本节点值)
+        # 4、如果节点不是叶子，且节点本身是右节点，记为：max(左子节点最大路径值 + 本节点值, 父节点最大路径值 + 本节点值,  本节点值)
+
+        # 先将root列表初始化为BinaryTreeNode
+        ma = MediumAlgorithm0_99()
+        rootbtn = ma.initiateBinaryTreeFromList(root)
+        print('rootbtn',rootbtn.val,rootbtn.left.val,rootbtn.right.val)
+
+        # 定义一个中序深度遍历的递归函数，计算每个节点的最大路径值,direct说明mode节点是左还是右
+        # 这里借用BinaryTreeNode的leftmax成员变量，其实不是这么用的
+        def LDRTraversal(node:BinaryTreeNode, paranode:BinaryTreeNode, direct:str, result:list):
+            # 叶子节点的情况
+            if node.left == None and node.right == None:
+                if direct == 'L':
+                    node.leftmax = node.val
+                elif direct == 'R':
+                    node.leftmax = max(paranode.leftmax+node.val, node.val)
+                if result[0] < node.leftmax:
+                    result[0] = node.leftmax
+                return
+            # 非叶子节点
+            if node.left != None:
+                LDRTraversal(node.left, node, 'L',result)
+
+            if direct == 'L':
+                node.leftmax = max(node.left.leftmax+node.val, node.val)
+            elif direct == 'R':
+                node.leftmax = max(node.left.leftmax+node.val, paranode.leftmax+node.val, node.val)
+            if result[0] < node.leftmax:
+                result[0] = node.leftmax
+
+            if node.right != None:
+                LDRTraversal(node.right, node, 'R',result)
+
+        # 执行递归函数，计算最大路径
+        resultlist = [float('-inf')]
+        LDRTraversal(rootbtn, None, 'L', resultlist)
+
+        print(resultlist[0])
+        return resultlist[0]
 
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    # l = [0,1,2,3,4,5,6,7,8]
-    # print(l[:9])
-    # print(l[4:])
+    ha.binaryTreeMaximumPathSum_124([1, 2, 3])
+    ha.binaryTreeMaximumPathSum_124([-10,9,20,None,None,15,7])
 
-    ha.bestTimeToBuyAndSellStockIII_123([3,3,5,0,0,3,1,4])
+    # ha.bestTimeToBuyAndSellStockIII_123([3,3,5,0,0,3,1,4])
 
     # ha.distinctSubsequences_115("rabbbit", "rabbit")
     # ha.distinctSubsequences_115("babgbag",  "bag")
