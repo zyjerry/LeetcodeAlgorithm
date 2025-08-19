@@ -8,6 +8,27 @@ import math
 import re
 from medium.MediumAlgorithm0_99 import BinaryTreeNode, MediumAlgorithm0_99
 
+# 一个树节点的类，一个节点可能包含多个子节点，子节点由一个list组成，list每个元素也是个TreeNode类
+class TreeNode:
+    def __init__(self, v:str, childlist = []):
+        self.val = v
+        self.childlist = childlist
+
+    # 前序深度遍历该节点下的所有树结构，并返回一个所有元素的val列表。根-子
+    def DLRTraversal(self,l:list)->list[int]:
+        l.append(self.val)
+        # 叶子节点，minvalue和maxvalue都是自己
+        if self.childlist == [] :
+            l.append(None)
+        else:
+            tmpl = []
+            for i in self.childlist:
+                tmpl.append(i.val)
+            l.append(tmpl)
+            for i in self.childlist:
+                i.DLRTraversal(l)
+        return l
+
 # 主类，算法实现都在这里面
 class HardAlgorithm0_199:
     """    构造函数，什么都不做    """
@@ -1225,12 +1246,97 @@ class HardAlgorithm0_199:
         print(resultlist[0])
         return resultlist[0]
 
+    """
+    126. 单词接龙 II：给你两个单词 beginWord 和 endWord ，以及一个字典 wordList 。
+                    请你找出并返回所有从 beginWord 到 endWord 的 最短转换序列 ，如果不存在这样的转换序列，返回一个空列表。
+                    每个序列都应该以单词列表 [beginWord, s1, s2, ..., sk] 的形式返回。
+        示例 1：输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]
+               输出：[["hit","hot","dot","dog","cog"],["hit","hot","lot","log","cog"]]
+               解释：存在 2 种最短的转换序列："hit" -> "hot" -> "dot" -> "dog" -> "cog"，"hit" -> "hot" -> "lot" -> "log" -> "cog"
+               标签：广度优先搜索，哈希表，字符串，回溯
+        https://leetcode.cn/problems/word-ladder-ii/description/
+    """
+
+    def wordLadderII_126(self,beginWord:str,endWord:str,wordList:list) -> list:
+        # 思路：从beginword开始，通过wordList构建一棵树，所有通向节点endWord的路径就是结果
+        if endWord not in wordList:
+            print('endWord not in wordList')
+            return []
+
+        # 先构建一个哈希表，每个单词是一个key，value是个列表，列表中都是跟key只有一个字母之差的单词
+        wordDict = {}
+        wordDict[beginWord] = []
+        for word in wordList:
+            c = 0
+            for i in range(len(beginWord)):
+                if beginWord[i] != word[i]:
+                    c = c + 1
+            if c == 1:
+                wordDict[beginWord].append(word)
+        for word1 in wordList:
+            wordDict[word1] = []
+            for word2 in wordList:
+                c = 0
+                for i in range(len(word1)):
+                    if word1[i] != word2[i]:
+                        c = c + 1
+                if c == 1:
+                    wordDict[word1].append(word2)
+        print(wordDict)
+
+        # 用广度遍历算法构建一个TreeNode树，当发现某个节点的childlist包含endWord的时候，遍历到该层结束，不需要更下一层了
+        root = TreeNode(beginWord)
+        queue = [root]
+        layer = 0
+        while queue:
+            n = len(queue)
+            layer = layer + 1
+            # 先找出queue中所有val单词是否包含endWord，如果包含，就不要往queue里塞入下一层元素了
+            flag = False
+            for i in range(n):
+                if queue[i].val == endWord:
+                    flag = True
+
+            # 如果本层queue中所有val单词不包含endWord，则把下一层读进来继续判断，否则跳出循环
+            if not flag:
+                for j in range(n):
+                    node = queue.pop(0)
+                    childl = wordDict[node.val]
+                    tmplist = [].copy()
+                    for childword in childl:
+                        node2 = TreeNode(childword)
+                        tmplist.append(node2)
+                    node.childlist = tmplist
+                    queue.extend(tmplist)
+            else:
+                break
+        print('广度遍历最大层数：',layer)
+        print('深度遍历树：', root.DLRTraversal([]))
+
+        resultlist = []
+        # 用深度遍历算法找到所有叶子节点为endWord的路径
+        # path:已经有的路径；currentword：当前待判断的节点；
+        def recursion(path: list, currentnode: TreeNode):
+            path.append(currentnode.val)
+            if currentnode.val == endWord:
+                resultlist.append(path.copy())
+            elif currentnode.childlist != None and currentnode.childlist != []:
+                for node in currentnode.childlist:
+                    recursion(path, node)
+            path.pop(-1)
+
+        recursion([], root)
+        print('最终结果：',resultlist)
+        return resultlist
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.binaryTreeMaximumPathSum_124([1, 2, 3])
-    ha.binaryTreeMaximumPathSum_124([-10,9,20,None,None,15,7])
+    ha.wordLadderII_126("hit", "cog", ["hot","dot","dog","lot","log","cog"])
+    ha.wordLadderII_126("hit", "cog", ["hot","dot","dog","lot","log"])
+
+    # ha.binaryTreeMaximumPathSum_124([1, 2, 3])
+    # ha.binaryTreeMaximumPathSum_124([-10,9,20,None,None,15,7])
 
     # ha.bestTimeToBuyAndSellStockIII_123([3,3,5,0,0,3,1,4])
 
