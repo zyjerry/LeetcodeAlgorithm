@@ -1298,7 +1298,8 @@ class HardAlgorithm0_199:
                     flag = True
 
             # 如果本层queue中所有val单词不包含endWord，则把下一层读进来继续判断，否则跳出循环
-            if not flag:
+            # 另外需考虑，假如就是没有路径，当遍历层数超过wordList元素个数+1时，也需要停止循环，因为这里没有判断路径中是否出现重复元素有可能死循环
+            if not flag and layer <= len(wordList)+1:
                 for j in range(n):
                     node = queue.pop(0)
                     childl = wordDict[node.val]
@@ -1329,11 +1330,183 @@ class HardAlgorithm0_199:
         print('最终结果：',resultlist)
         return resultlist
 
+    """
+    127. 单词接龙：给你两个单词 beginWord 和 endWord 和一个字典 wordList ，返回 从 beginWord 到 endWord 的 最短转换序列 中的 单词数目 。如果不存在这样的转换序列，返回 0 。
+        示例 1：输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]
+               输出：5
+        标签：广度优先搜索，哈希表，字符串
+        https://leetcode.cn/problems/word-ladder/description/
+    """
+
+    def wordLadder_127(self,beginWord:str,endWord:str,wordList:list) -> int:
+        # 思路：这一题比126容易一些，去掉最后深度遍历获取路径的步骤，用广度遍历获取layer即可。126的广度遍历其实还有个缺陷，就是没有判断路径上是否有重复元素。
+        # 这次改进一下，先构造一个单词节点之间存在连线的“图”，再根据图进行广度遍历，
+
+        if endWord not in wordList:
+            print('endWord not in wordList')
+            return []
+
+        # 先构建一个图，该图是一个list，每个list包含2个单词，表示这2个单词有一个字母之差，即这个图包含了所有的“边”。
+        wordEdges = []
+        tmplist = wordList.copy()
+        tmplist.insert(0,beginWord)
+        for i in range(len(tmplist)-1):
+            for j in range(i+1,len(tmplist)):
+                c = 0
+                for k in range(len(beginWord)):
+                    if tmplist[i][k] != tmplist[j][k]:
+                        c = c + 1
+                if c == 1:
+                    wordEdges.append([tmplist[i],tmplist[j]])
+
+        print(wordEdges)
+
+        # 用广度遍历算法寻找图，当发现某条“边”节点的childlist包含endWord的时候，结束，不需要继续遍历了。
+        # 这个算法还是有缺陷。tmpEdges存储了所有单词之间的“边”，已经用到的“边”就删掉避免死循环，
+        # 但是从广度搜索算法本身来讲还不能回溯地判断单条路径是否有重复的边，所以这样构建出来的路径不全。仅仅可以得到正确到达endWord的“层数”而已。
+        # 要想完整准确无回路地构造路径，还是需要深度遍历
+        queue = [beginWord]
+        layer = 0
+        tmpEdges = wordEdges.copy()
+        while queue:
+            print(queue,tmpEdges)
+            n = len(queue)
+            layer = layer + 1
+            # 先找出queue中所有val单词是否包含endWord，如果包含，就不要往queue里塞入下一层元素了
+            flag = False
+            for i in range(n):
+                if queue[i] == endWord:
+                    flag = True
+
+            # 如果本层queue中所有val单词不包含endWord，则把下一层读进来继续判断，否则跳出循环
+            # 另外需考虑，假如就是没有路径，当遍历层数超过wordList元素个数+1时，也需要停止循环，因为这里没有判断路径中是否出现重复元素有可能死循环
+            if not flag and layer <= len(wordList)+1:
+                for j in range(n):
+                    node = queue.pop(0)
+                    k = 0
+                    while k <len(tmpEdges):
+                        if node in tmpEdges[k]:
+                            tmpEdges[k].remove(node)
+                            queue.extend(tmpEdges[k])
+                            tmpEdges.pop(k)
+                        else:
+                            k = k + 1
+            else:
+                break
+        print('广度遍历最大层数：',layer)
+        return layer
+
+    """
+    132. 分割回文串 II：给你一个字符串 s，请你将 s 分割成一些子串，使每个子串都是回文串。返回符合要求的 最少分割次数 。
+         示例 1：输入：s = "aab"，输出：1，解释：只需一次分割就可将 s 分割成 ["aa","b"] 这样两个回文子串。
+         标签：字符串，动态规划
+         https://leetcode.cn/problems/palindrome-partitioning-ii/description/
+   """
+
+    def palindromePartitioningII_132(self,s:str)->int:
+        # 思路1：笨办法，假如s的长度是n，那么最多有n-1个分法，也即分割成两个字母就是回文串了。
+        # 分头从1试到n-1，看看是否符合条件，思路神似115题。只是这个方法时间复杂度较长。
+
+        # 先定义一个子函数判断字符串是否回文串
+        def isPalindromeString(ss:str)->bool:
+            for i in range (len(ss)//2):
+                if ss[i] != ss[len(ss)-i-1]:
+                    return False
+            return True
+
+        # 先判断s是否回文：
+        if isPalindromeString(s):
+            return 0
+
+        # 如果s不是回文，继续往下走
+        # 先确定n的上限，以及初始化t的坐标列表idxoroginlist，以及最终划分方案结果列表：
+        maxn = len(s) - 1
+        idxoroginlist = list(range(maxn))
+        resultlist = []
+        # print('idxoroginlist', idxoroginlist)
+
+        # 从把t分成1段开始，一步一步往上加。分成n段，需要在0~len(t)-2坐标中找出n-1个
+        n = 1
+        divideList = []
+        while n <= maxn:
+            idxcomb = itertools.combinations(idxoroginlist, n)
+            for i in idxcomb:
+                divideList.append(list(i))
+            n = n + 1
+        print(divideList)
+
+        # 从小到大对每种分法判断是否回文
+        for i in divideList:
+            resultlist = []
+            flag = True
+            j = 0
+            for k in range(len(i)):
+                tmps = s[j:i[k]+1]
+                resultlist.append(tmps)
+                flag = flag and isPalindromeString(tmps)
+                if not flag:
+                    break
+                else:
+                    j = i[k] + 1
+            tmps = s[j:len(s)]
+            resultlist.append(tmps)
+            flag = flag and isPalindromeString(tmps)
+            if flag:
+                break
+
+        print(len(resultlist)-1,resultlist)
+        # return len(resultlist)-1
+
+        # 思路2：官解用的动态规划，性能好，但比较难于理解，尝试理解了很久……
+        # 先用一个矩阵f[i][j]表示s[i:j]是否回文串
+        n = len(s)
+        f = [[True] * n for _ in range(n)]
+        for i in range(n - 1, -1, -1):
+            for j in range(i + 1, n):
+                f[i][j] = (s[i] == s[j]) and f[i + 1][j - 1]
+        print(f)
+
+        ret = list()
+        ans = list()
+        # 类似于深度遍历，对于每个s[i,n]中的字符j，如果s[i:j]也是回文串，就把它加入临时列表中，
+        def dfs(i: int):
+            # print('i',i,'ans',ans)
+            if i == n:
+                ret.append(ans[:])
+                return
+
+            for j in range(i, n):
+                if f[i][j]:
+                    ans.append(s[i:j + 1])
+                    dfs(j + 1)
+                    ans.pop()
+
+        dfs(0)
+        # 此时，ret里装的是所有的回文分割方案的组合，需要从中找出最小的分割方案，不一定是最后一个，所以要判断一下，这么看的话性能也不很高啊
+        c = len(s)
+        result = []
+        for re in ret:
+            if len(re) < c:
+                c = len(re)
+                result = re[:]
+
+        print(result)
+        return len(result)
+
+
+
+
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.wordLadderII_126("hit", "cog", ["hot","dot","dog","lot","log","cog"])
-    ha.wordLadderII_126("hit", "cog", ["hot","dot","dog","lot","log"])
+    ha.palindromePartitioningII_132('aabaabcdfdcbu')
+    ha.palindromePartitioningII_132('aaba')
+
+    # ha.wordLadder_127("hit", "cog", ["hot","dot","dog","lot","log","cog"])
+    # ha.wordLadder_127("hit", "cog", ["hot","dot","dog","lot","log"])
+
+    # ha.wordLadderII_126("hit", "cog", ["hot","dot","dog","lot","log","cog"])
+    # ha.wordLadderII_126("hit", "cog", ["hot","dot","dog","lot","log"])
 
     # ha.binaryTreeMaximumPathSum_124([1, 2, 3])
     # ha.binaryTreeMaximumPathSum_124([-10,9,20,None,None,15,7])
