@@ -1493,14 +1493,68 @@ class HardAlgorithm0_199:
         print(result)
         return len(result)
 
+    """
+    135. 分发糖果：n 个孩子站成一排。给你一个整数数组 ratings 表示每个孩子的评分。你需要按照以下要求，给这些孩子分发糖果：
+                 每个孩子至少分配到 1 个糖果。相邻两个孩子中，评分更高的那个会获得更多的糖果。请你给每个孩子分发糖果，计算并返回需要准备的 最少糖果数目 。
+        示例 1：输入：ratings = [1,0,2]，输出：5，解释：你可以分别给第一个、第二个、第三个孩子分发 2、1、2 颗糖果。
+        示例 2：输入：ratings = [1,2,2]，输出：4，解释：你可以分别给第一个、第二个、第三个孩子分发 1、2、1 颗糖果。第三个孩子只得到 1 颗糖果，这满足题面中的两个条件。
+        标签：贪心，数组
+        https://leetcode.cn/problems/candy/description/
+    """
 
+    def candyRatings_135(self,ratings:list)->int:
+        # 思路1：笨办法，从评分最低的开始分糖果，如果周围有高分的，周围加一个糖果。只是需要多重循环，性能比较低
 
+        # 先把ratings评价份去重排序，存到另一个列表中
+        newratings = list(set(ratings))
+        newratings.sort()
+
+        # candyList存储每个孩子最终分到的糖果，初始化全部置为1
+        n = len(ratings)
+        candyList = [1] * n
+
+        # 最低值开始，如果周围有高分的，周围加一个糖果
+        for rating in newratings:
+            # 每个rating列表元素都判断一遍
+            for i in range(n):
+                if ratings[i] == rating:
+                    # print(max(0,i-1),i,min(i+1, n-1))
+                    if ratings[max(0,i-1)] > ratings[i]:
+                        candyList[max(0,i-1)] = candyList[i] + 1
+                    if ratings[min(i+1, n-1)] > ratings[i]:
+                        candyList[min(i+1, n-1)] = candyList[i] + 1
+
+        print('思路1',sum(candyList),candyList)
+        # return sum(candyList)
+
+        # 思路2：贪心，依次判断ratings的每个评分，当判断到第i个元素时，看左边的元素分情况：
+        # 若ratings[i-1] > ratings[i]：candyList[i-1]加1，并且向左一直判断，如果左边大于右边，左边加1，直到左边小于右边
+        # 若ratings[i-1] < ratings[i]：candyList[i]等于candyList[i-1]加1
+        # 这个方法跟思路1比性能，要看情况，假如极端情况ratings完全是倒序排列的，那就一样
+        candyList = [1] * n
+        for i in range(n):
+            if ratings[max(0, i - 1)] > ratings[i]:
+                candyList[max(0, i - 1)] = candyList[i] + 1
+                for j in range(max(0, i - 1), 0, -1):
+                    if ratings[j - 1] > ratings[j]:
+                        candyList[j-1] = candyList[j] + 1
+            if ratings[max(0, i - 1)] < ratings[i]:
+                candyList[i] = candyList[max(0, i - 1)] + 1
+        print('思路2', sum(candyList), candyList)
+        return sum(candyList)
+
+        # 官解思路比较好，性能比上述都要高一些，犯人如果很难想到，暂不写了。
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.palindromePartitioningII_132('aabaabcdfdcbu')
-    ha.palindromePartitioningII_132('aaba')
+    ha.candyRatings_135([1,0,2])
+    ha.candyRatings_135([3,1,2,2])
+    ha.candyRatings_135([1,2,3,4])
+    ha.candyRatings_135([4,1,3,2,1])
+
+    # ha.palindromePartitioningII_132('aabaabcdfdcbu')
+    # ha.palindromePartitioningII_132('aaba')
 
     # ha.wordLadder_127("hit", "cog", ["hot","dot","dog","lot","log","cog"])
     # ha.wordLadder_127("hit", "cog", ["hot","dot","dog","lot","log"])
