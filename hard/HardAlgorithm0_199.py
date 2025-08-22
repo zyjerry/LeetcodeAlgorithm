@@ -1543,15 +1543,81 @@ class HardAlgorithm0_199:
         print('思路2', sum(candyList), candyList)
         return sum(candyList)
 
-        # 官解思路比较好，性能比上述都要高一些，犯人如果很难想到，暂不写了。
+        # 官解能看懂，思路比较好，性能比上述都要高一些，我智商有限很难想到，暂不写了。
+
+    """
+    140. 单词拆分 II：给定一个字符串 s 和一个字符串字典 wordDict ，在字符串 s 中增加空格来构建一个句子，使得句子中所有的单词都在词典中。
+                    以任意顺序 返回所有这些可能的句子。注意：词典中的同一个单词可能在分段中被重复使用多次。
+        示例 1：输入:s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]，输出:["cats and dog","cat sand dog"]
+        标签：字典树，记忆化搜索，数组，哈希表，字符串，动态规划，回溯
+        https://leetcode.cn/problems/word-break-ii/description/
+    """
+
+    def wordBreakII_140(self,s:str,wordDict:list)->list:
+        # 思路：类似于深度遍历搜索，设计一个递归函数，
+        # 从s的第0个字符开始，依次往后加字符，判断单词是否在wordDict中，如果在，就把前面的单词记下来，继续调用函数判断后面的字符串
+
+        resultlist = []
+        def recursion1(path:list,ss:str):
+            if ss == '':
+                resultlist.append(path[:])
+                return
+            for i in range(1,len(ss)+1):
+                if ss[:i] in wordDict:
+                    path.append(ss[:i])
+                    print(ss[:i], ss[i:], path, resultlist)
+                    recursion1(path,ss[i:])
+                    path.pop()
+
+        # recursion1([],s)
+        print(len(resultlist),resultlist)
+        # return resultlist
+
+        # 我就知道这个题没那么简单被我做出来，当s,wordDict特别长的情况下，如下述超长aaaaa的测试用例，时间性能就会无法容忍了。
+        # 加一个剪枝策略，如果s[i:]字符串都没有匹配上的话，后续就不用匹配了，把s[i:]放到一个列表里，加入判断
+        # 但跑了一遍下述超长aaaaa的测试用例，这个也很慢无法容忍。
+        resultlist = []
+        mismatchlist = []
+        def recursion2(path:list,ss:str):
+            if ss == '':
+                resultlist.append(path[:])
+                return
+            flag = False
+            for i in range(1,len(ss)+1):
+                if ss[:i] in wordDict:
+                    flag = True
+                    path.append(ss[:i])
+                    print(ss[:i], ss[i:], path, resultlist,'mismatchlist',mismatchlist)
+                    if ss[i:] not in mismatchlist:
+                        recursion2(path,ss[i:])
+                        path.pop()
+                    else:
+                        break
+            if not flag:
+                mismatchlist.append(ss)
+
+        if s in wordDict:
+            resultlist.append(s)
+        else:
+            recursion2([],s)
+        print('mismatchlist',mismatchlist)
+        print(len(resultlist),resultlist)
+        return resultlist
+
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.candyRatings_135([1,0,2])
-    ha.candyRatings_135([3,1,2,2])
-    ha.candyRatings_135([1,2,3,4])
-    ha.candyRatings_135([4,1,3,2,1])
+    ha.wordBreakII_140("catsanddog", ["cat","cats","and","sand","dog"])
+    ha.wordBreakII_140("pineapplepenapple", ["apple","pen","applepen","pine","pineapple"])
+    ha.wordBreakII_140("aaa...aaa", ["a", "aa", "aaa", ..., "aaa...aaa"])
+    # ha.wordBreakII_140("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    #                      ["a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"])
+
+    # ha.candyRatings_135([1,0,2])
+    # ha.candyRatings_135([3,1,2,2])
+    # ha.candyRatings_135([1,2,3,4])
+    # ha.candyRatings_135([4,1,3,2,1])
 
     # ha.palindromePartitioningII_132('aabaabcdfdcbu')
     # ha.palindromePartitioningII_132('aaba')
