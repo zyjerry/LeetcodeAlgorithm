@@ -1604,13 +1604,82 @@ class HardAlgorithm0_199:
         print(len(resultlist),resultlist)
         return resultlist
 
+    """
+    149. 直线上最多的点数：给你一个数组 points ，其中 points[i] = [xi, yi] 表示 X-Y 平面上的一个点。求最多有多少个点在同一条直线上。
+        示例 1：输入：points = [[1,1],[2,2],[3,3]]，输出：3
+        示例 2：输入：points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]，输出：4
+        标签：几何，数组，哈希表，数学
+        https://leetcode.cn/problems/max-points-on-a-line/description/
+    """
+
+    def maxPointsOnALine_149(self,points:list)->int:
+        # 思路：笨办法：所有元素取两个点组合形成一条直线，验证其他点是否在这条直线上，如在，合并。取最终合并的元素数量最大的集合。
+
+        # 先列出所有坐标的两两组合
+        idxlist = [i  for i in range(len(points))]
+        comb = itertools.combinations(idxlist,2)
+        idxlist = []
+        for idx in comb:
+            idxlist.append(list(idx))
+        print(idxlist)
+
+        # 对每个组合，判断其他点是否在这个组合所在直线上
+        resultlist = []
+        maxcount= 0
+        j = 0
+        while j < len(idxlist):
+            tmplist = []
+            tmplist.extend(idxlist[j])
+            for i in range(len(points)):
+                if i not in idxlist[j]:
+                    # 斜率是否一致
+                    if  (points[i][1]-points[idxlist[j][0]][1])*(points[i][0]-points[idxlist[j][1]][0]) \
+                            - (points[i][0]-points[idxlist[j][0]][0])*(points[i][1]-points[idxlist[j][1]][1]) == 0:
+                        tmplist.append(i)
+                        # 删除已经合并不需要再判断的坐标组合
+                        for k in range(len(tmplist) - 1):
+                            if [tmplist[k], i] in idxlist:
+                                idxlist.remove([tmplist[k], i])
+            resultlist.append(tmplist)
+            if maxcount < len(tmplist):
+                maxcount = len(tmplist)
+            j = j + 1
+
+        print(maxcount,resultlist)
+        # return maxcount
+
+        # 思路2官解：轮询每个点，找其他所有点跟该点共线的情况。
+        # 官解提到斜率用二元组表示、除以最大公约数化简等等，还用到了哈希，没太看明白，感觉反而搞复杂了。
+        # 加了点优化，点的总数量小于等于 2 的情况下，我们总可以用一条直线将所有点串联，此时我们直接返回点的总数量即可。
+        if len(points)< 3:
+            return len(points)
+
+        resultlist = []
+        maxcount = 0
+        for i in range(len(points)):
+            for j in range(i+1,len(points)):
+                tmplist = [i,j]
+                for k in range(j+1,len(points)):
+                    if (points[i][1]-points[j][1])*(points[i][0]-points[k][0]) \
+                            -(points[i][0]-points[j][0]) * (points[i][1]-points[k][1]) == 0:
+                        tmplist.append(k)
+                if maxcount<len(tmplist):
+                    maxcount = len(tmplist)
+                    resultlist= tmplist[:]
+
+        print(maxcount, resultlist)
+        return maxcount
+
+
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.wordBreakII_140("catsanddog", ["cat","cats","and","sand","dog"])
-    ha.wordBreakII_140("pineapplepenapple", ["apple","pen","applepen","pine","pineapple"])
-    ha.wordBreakII_140("aaa...aaa", ["a", "aa", "aaa", ..., "aaa...aaa"])
+    ha.maxPointsOnALine_149([[1,1],[2,2],[3,3]])
+    ha.maxPointsOnALine_149([[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]])
+    # ha.wordBreakII_140("catsanddog", ["cat","cats","and","sand","dog"])
+    # ha.wordBreakII_140("pineapplepenapple", ["apple","pen","applepen","pine","pineapple"])
+    # ha.wordBreakII_140("aaa...aaa", ["a", "aa", "aaa", ..., "aaa...aaa"])
     # ha.wordBreakII_140("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     #                      ["a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa", "aaaaaaaa", "aaaaaaaaa", "aaaaaaaaaa"])
 
