@@ -6,6 +6,8 @@
 import itertools
 import math
 import re
+# 注意，对于多维矩阵的深拷贝，必须用copy.deepcopy，不能简单调用list.copy函数，这个函数只对一维数组有效
+import copy
 from medium.MediumAlgorithm0_99 import BinaryTreeNode, MediumAlgorithm0_99
 
 # 一个树节点的类，一个节点可能包含多个子节点，子节点由一个list组成，list每个元素也是个TreeNode类
@@ -1670,13 +1672,140 @@ class HardAlgorithm0_199:
         print(maxcount, resultlist)
         return maxcount
 
+    """
+    154. 寻找旋转排序数组中的最小值 II：已知一个长度为 n 的数组，预先按照升序排列，经由 1 到 n 次 旋转 后，得到输入数组。
+                                  给你一个可能存在 重复 元素值的数组 nums ，它原来是一个升序排列的数组，并按上述情形进行了多次旋转。请你找出并返回数组中的 最小元素 。
+                                  你必须尽可能减少整个过程的操作步骤。
+        示例 1：输入：nums = [1,3,5]，输出：1，
+        示例 2：输入：nums = [2,2,2,0,1]，输出：0
+        标签：数组，二分查找
+        https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array-ii/description/
+    """
+
+    def findMinInRotatedSortedArrayII_154(self,nums:list)->int:
+        # 思路：笨办法肯定是一次轮询，但显然不符合提议要求。设计一个改进的二分查找法，判断头、中、尾的大小：
+        # 1、中<尾：最小值处于[头,中]区间
+        # 2、中>尾：最小值处于[中,尾]区间
+        # 3、中=尾：无法判断，那就尾-1，继续判断，不做二分
+        beginidx, endidx = 0, len(nums)-1
+        minval = 0
+        while beginidx < endidx:
+            if endidx - beginidx < 2:
+                minval = min(nums[beginidx], nums[endidx])
+                print('最小值', minval)
+                return minval
+            mididx = (beginidx + endidx)//2
+            print('判断前beginidx, mididx, endidx', beginidx, mididx, endidx)
+            # 1、中<尾：最小值处于[头,中]区间
+            if nums[mididx] < nums[endidx]:
+                endidx = mididx
+            # 2、中>尾：最小值处于[中,尾]区间
+            elif nums[mididx] > nums[endidx]:
+                beginidx = mididx
+            # 3、中=尾：
+            elif nums[mididx] > nums[endidx]:
+                endidx = endidx - 1
+            print('判断后beginidx, mididx, endidx', beginidx, mididx, endidx)
+
+        minval = nums[beginidx]
+        print('最小值',minval)
+        return minval
+
+    """
+    174. 地下城游戏： m x n 二维网格，每个网格存储一个数字。骑士的初始健康点数为一个正整数。
+                    找出从左上角到右下角的最优路径，使得骑士经过这些点被扣除或增加的健康点数始终保持>0，且初始健康点数最低。
+        示例 1：输入：dungeon = [[-2,-3,3],[-5,-10,1],[10,30,-5]]，输出：7，解释：如果骑士遵循最佳路径：右 -> 右 -> 下 -> 下 ，则骑士的初始健康点数至少为 7 。
+        示例 2：输入：dungeon = [[0]]，输出：1
+        标签：数组，动态规划，矩阵
+        https://leetcode.cn/problems/dungeon-game/description/
+    """
+
+    def dungeonGame_174(self, dungeon:list)->int:
+        # 思路：这题想了很久从左上至右下的动态规划，想不出来。因为要求解初始健康点数最低，不仅依赖坐标左、上的历史条件，也取决于后续未知的条件。
+        # 如果强行笨办法，就得从左上至右下构建一颗二叉树+深度遍历，求出到达每个叶子节点的路径上负数的最小值，再找出这些负数的最大值即是答案。
+        # 性能太差。先用这个写一遍，再看官解。
+
+        # 先用广度遍历法构建二叉树
+        root = BinaryTreeNode(dungeon[0][0])
+        queue = [[root,0,0]]
+        while queue:
+            n = len(queue)
+            while n>0:
+                complexnode = queue.pop(0)
+                node,i,j = complexnode[0],complexnode[1],complexnode[2]
+                # 左节点（向下）
+                if i != len(dungeon)-1:
+                    leftnode = BinaryTreeNode(dungeon[i+1][j])
+                    node.left = leftnode
+                    queue.append([leftnode,i+1,j])
+                # 右节点（向右）
+                if j != len(dungeon[0])-1:
+                    rightnode = BinaryTreeNode(dungeon[i][j+1])
+                    node.right = rightnode
+                    queue.append([rightnode,i,j+1])
+                n = n - 1
+        print(root.breadthFirstTraversal())
+
+        # 再用深度遍历法计算每条路径上的累计值和负数最小值，累计值记在BinaryTreeNode.leftmax上，负数最小值记在BinaryTreeNode.leftmin上
+        alternativelist = []
+        def dfs(node:BinaryTreeNode):
+            # 如果已经到达叶子节点，把leftmin加入备选
+            # print(node.val,node.leftmax,node.leftmin)
+            if node.left == None and node.right == None:
+                alternativelist.append(node.leftmin)
+                return
+            if node.left != None:
+                node.left.leftmax = node.leftmax + node.left.val
+                node.left.leftmin = min(node.leftmin, node.left.leftmax)
+                dfs(node.left)
+            if node.right != None:
+                node.right.leftmax = node.leftmax + node.right.val
+                node.right.leftmin = min(node.leftmin, node.right.leftmax)
+                dfs(node.right)
+
+        root.leftmin, root.leftmax = root.val, root.val
+        dfs(root)
+        print(max(alternativelist),alternativelist)
+        # 只有当最小值是负数时，需要取绝对值再加1，其他情况取0
+        # if max(alternativelist)<0:
+        #     return abs(max(alternativelist))+1
+        # else:
+        #     return 0
+
+        # 官解是这样的，也是想了很久才明白：要从右下向左上动态规划，详见官网，这里不展开写了。优雅，确实优雅。
+
+        # 初始化一个m+1,n+1的矩阵，记录结果，每个格子代表从该格子走到终点需要准备的最小分数值。
+        # 矩阵值初始化为一个非常大的数，但是result[m-1][n] 、result[m][n-1]这2个元素设为1，便于第一步正确计算result[m-1][n-1]
+        m,n = len(dungeon),len(dungeon[0])
+        result = [[10**9 for _ in range(n+1)] for _ in range(m+1)]
+        result[m - 1][n], result[m][n - 1] = 1, 1
+        print('初始化结果矩阵',result)
+        # 从坐标[m-1,n-1]开始迭代，向左上角动态规划
+        for i in range(m-1,-1,-1):
+            for j in range(n-1,-1,-1):
+                # 这个公式是怎么来的，详见官网解答
+                minn = min(result[i + 1][j], result[i][j + 1])
+                result[i][j] = max(minn-dungeon[i][j], 1)
+
+        print('迭代计算完的结果矩阵',result)
+        return result[0][0]
 
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.maxPointsOnALine_149([[1,1],[2,2],[3,3]])
-    ha.maxPointsOnALine_149([[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]])
+    ha.dungeonGame_174([[-2,-3,3],[-5,-10,1],[10,30,-5]])
+    ha.dungeonGame_174([[2,3,3],[5,10,1],[10,30,5]])
+    ha.dungeonGame_174([[0]])
+
+
+    # ha.findMinInRotatedSortedArrayII_154([1,3,5])
+    # ha.findMinInRotatedSortedArrayII_154([2,2,2,0,1])
+    # ha.findMinInRotatedSortedArrayII_154([4, 5, 6, 7, 0, 1, 4])
+
+    # ha.maxPointsOnALine_149([[1,1],[2,2],[3,3]])
+    # ha.maxPointsOnALine_149([[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]])
+
     # ha.wordBreakII_140("catsanddog", ["cat","cats","and","sand","dog"])
     # ha.wordBreakII_140("pineapplepenapple", ["apple","pen","applepen","pine","pineapple"])
     # ha.wordBreakII_140("aaa...aaa", ["a", "aa", "aaa", ..., "aaa...aaa"])
