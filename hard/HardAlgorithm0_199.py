@@ -1790,14 +1790,47 @@ class HardAlgorithm0_199:
         print('迭代计算完的结果矩阵',result)
         return result[0][0]
 
+    """
+    188. 买卖股票的最佳时机 IV：给你一个整数数组 prices 和一个整数 k ，其中 prices[i] 是某支给定的股票在第 i 天的价格。
+                            设计一个算法来计算你所能获取的最大利润。你最多可以完成 k 笔交易。也就是说，你最多可以买 k 次，卖 k 次。
+                            注意：你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。
+        示例 2：输入：k = 2, prices = [3,2,6,5,0,3]，输出：7，
+        解释：在第 2 天 (股票价格 = 2) 的时候买入，在第 3 天 (股票价格 = 6) 的时候卖出, 这笔交易所能获得利润 = 6-2 = 4 。
+             随后，在第 5 天 (股票价格 = 0) 的时候买入，在第 6 天 (股票价格 = 3) 的时候卖出, 这笔交易所能获得利润 = 3-0 = 3 。
+        标签：数组，动态规划
+        https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iv/description/
+    """
+
+    def bestTimeToBuyAndSellStockIV_188(self,prices:list,k:int)->int:
+        # 思路：这题是123的扩展，123限定之交易2次，本题将其变成变量k，所以有k*2个核心状态：
+        # 第一次买、第一次卖、……第k次买、第k次卖，需要在每个prices[i]中判断这k*2个状态的转移关系。详细逻辑看网页这里不写了，只是重写下代码。
+
+        # 先初始化一个k*2的二维数组，并初始化原始状态的收益：
+        buyselllist = [[0 for _ in range(2)] for _ in range(k)]
+        for i in range(k):
+            buyselllist[i][0] = -prices[0]   
+        print('初始化收益列表', buyselllist)
+        # 动态规划
+        for i in range(1,len(prices)):
+            buyselllist[0][0] = max(buyselllist[0][0], buyselllist[0][1]-prices[i])
+            for j in range(1,k):
+                buyselllist[j][0] = max(buyselllist[j][0],buyselllist[j][1]-prices[i])
+                buyselllist[j][1] = max(buyselllist[j][1], buyselllist[j][0] + prices[i])
+
+        print('动态规划收益列表',buyselllist)
+        print('最大收益', buyselllist[k-1][1])
+        return int(buyselllist[k-1][1])
+
 
 if __name__ == "__main__":
     ha = HardAlgorithm0_199()
 
-    ha.dungeonGame_174([[-2,-3,3],[-5,-10,1],[10,30,-5]])
-    ha.dungeonGame_174([[2,3,3],[5,10,1],[10,30,5]])
-    ha.dungeonGame_174([[0]])
+    ha.bestTimeToBuyAndSellStockIV_188([3,2,6,5,0,3],2)
+    ha.bestTimeToBuyAndSellStockIV_188([2,4,1],2)
 
+    # ha.dungeonGame_174([[-2,-3,3],[-5,-10,1],[10,30,-5]])
+    # ha.dungeonGame_174([[2,3,3],[5,10,1],[10,30,5]])
+    # ha.dungeonGame_174([[0]])
 
     # ha.findMinInRotatedSortedArrayII_154([1,3,5])
     # ha.findMinInRotatedSortedArrayII_154([2,2,2,0,1])
